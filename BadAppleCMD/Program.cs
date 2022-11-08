@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Drawing;
+using System.Text;
 
 namespace BadAppleCMD
 {
@@ -32,24 +34,37 @@ namespace BadAppleCMD
 
             Console.WriteLine(path);
 
-            //Get every videoframe
+            ////Get every videoframe
             string strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             string strWorkPath = System.IO.Path.GetDirectoryName(strExeFilePath);
 
             //Make temp hidden folder. ffmpeg can not create one on its own
-            DirectoryInfo di = Directory.CreateDirectory(strWorkPath + "/frames/%04d.jpg");
+            DirectoryInfo di = Directory.CreateDirectory(strWorkPath + "/frames");
             di.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
 
             //Save frames
-            string parameter = "-i " + path + " " + strWorkPath + "/frames/%04d.jpg";
+            string parameter = "-i " + path + " " + strWorkPath + "/frames/%04d.png";
             parameter = parameter.Replace("\\", "/");
 
-            Execute(".\\ffmpeg.exe", parameter );
+            Execute(".\\ffmpeg.exe", parameter);
 
             Console.WriteLine("Finished");
 
+            //Go through every frame and print it
+            //TODO Try one frame first before working on every frame at a set fps depending on how fast it can draw
+            int fCount = Directory.GetFiles(strWorkPath + "/frames", "*", SearchOption.TopDirectoryOnly).Length;
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.CursorVisible = false;
+            Console.Clear();
+            for (int i = 1; i <= fCount; i++)
+            {
+                Console.Write(ConvertToAscii(new Bitmap(strWorkPath + $"\\frames\\{i:0000}.png")));
+                //Console.Clear();
+            }
+
             //Delete temp folder
-            Directory.Delete(strWorkPath + "/frames", true);
+            //TODO Free up files
+            //Directory.Delete(strWorkPath + "/frames", true);
 
             //Keep console open
             for (; ; )
@@ -85,6 +100,43 @@ namespace BadAppleCMD
                 p.BeginErrorReadLine();
                 p.WaitForExit();
             }
+        }
+
+        private static string ConvertToAscii(Bitmap image)
+        {
+            string[] _AsciiChars = { " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", "█" };
+            image = new Bitmap(image, new Size(image.Width / 4, image.Height / 4));
+
+            Boolean toggle = false;
+            StringBuilder sb = new StringBuilder();
+            for (int h = 0; h < image.Height; h++)
+            {
+                for (int w = 0; w < image.Width; w++)
+                {
+                    Color pixelColor = image.GetPixel(w, h);
+                    //Average out the RGB components to find the Gray Color
+                    int red = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
+                    int green = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
+                    int blue = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
+                    Color grayColor = Color.FromArgb(red, green, blue);
+                    //Use the toggle flag to minimize height-wise stretch
+                    if (!toggle)
+                    {
+                        int index = (grayColor.R * 10) / 255;
+                        sb.Append(_AsciiChars[index]);
+                    }
+                }
+                if (!toggle)
+                {
+                    sb.Append("\n");
+                    toggle = true;
+                }
+                else
+                {
+                    toggle = false;
+                }
+            }
+            return sb.ToString();
         }
     }
 }
