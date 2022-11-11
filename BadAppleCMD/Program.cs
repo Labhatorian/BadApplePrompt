@@ -56,14 +56,14 @@ namespace BadAppleCMD
             int fCount = Directory.GetFiles(strWorkPath + "/frames", "*", SearchOption.TopDirectoryOnly).Length;
             Console.BackgroundColor = ConsoleColor.Black;
             Console.CursorVisible = false;
-            Console.SetWindowSize(121, 44);
+            Console.SetWindowSize(121, 45);
 
             Console.Clear();
             for (int i = 1; i <= fCount; i++)
             {
                 await Task.Delay(30);
-                FastConsole.WriteLine(ConvertToAscii(new Bitmap(strWorkPath + $"\\frames\\{i:0000}.png")));
-                
+                //FastConsole.WriteLine(ConvertToAscii(new Bitmap(strWorkPath + $"\\frames\\{i:0000}.png")));
+                Console.Write(ConvertToAscii(new Bitmap(strWorkPath + $"\\frames\\{i:0000}.png")));
                 //Console.Clear();
             }
 
@@ -113,6 +113,7 @@ namespace BadAppleCMD
             image = new Bitmap(image, new Size(image.Width / 4, image.Height / 4));
 
             Boolean toggle = false;
+            int countlines = 0;
             StringBuilder sb = new StringBuilder();
             for (int h = 0; h < image.Height; h++)
             {
@@ -134,6 +135,7 @@ namespace BadAppleCMD
                 if (!toggle)
                 {
                     sb.Append("\n");
+                    countlines++;
                     toggle = true;
                 }
                 else
@@ -141,6 +143,7 @@ namespace BadAppleCMD
                     toggle = false;
                 }
             }
+            
             return sb.ToString();
         }
     }
