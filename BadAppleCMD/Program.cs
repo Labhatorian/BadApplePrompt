@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
+using System.Media;
 using System.Text;
 
 namespace BadAppleCMD
@@ -43,10 +44,13 @@ namespace BadAppleCMD
             DirectoryInfo di = Directory.CreateDirectory(strWorkPath + "/frames");
             di.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
 
-            //Save frames
-            string parameter = "-i " + path + " " + strWorkPath + "/frames/%04d.png";
-            parameter = parameter.Replace("\\", "/");
+            //Save frames and get audio
+            //string parameter = "-i " + path + " " + strWorkPath + "/frames/%04d.png";
+            //parameter = parameter.Replace("\\", "/");
+            //Execute(".\\ffmpeg.exe", parameter);
 
+            //parameter = "-i " + path + " " + strWorkPath + "/frames/audio.wav";
+            //parameter = parameter.Replace("\\", "/");
             //Execute(".\\ffmpeg.exe", parameter);
 
             Console.WriteLine("Finished");
@@ -57,20 +61,23 @@ namespace BadAppleCMD
             Console.BackgroundColor = ConsoleColor.Black;
             Console.CursorVisible = false;
             Console.SetWindowSize(121, 45);
+            Console.SetBufferSize(121, 45);
 
             Console.Clear();
+
+            //Play audio
+            SoundPlayer audio = new SoundPlayer(strWorkPath + "/frames/audio.wav");
+            audio.Play();
             for (int i = 1; i <= fCount; i++)
             {
                 await Task.Delay(30);
-                //FastConsole.WriteLine(ConvertToAscii(new Bitmap(strWorkPath + $"\\frames\\{i:0000}.png")));
                 Console.Write(ConvertToAscii(new Bitmap(strWorkPath + $"\\frames\\{i:0000}.png")));
                 //Console.Clear();
             }
 
             //Delete temp folder
-            FastConsole.Flush();
+            audio.Stop();
             //Directory.Delete(strWorkPath + "/frames", true);
-
             //Keep console open
             for (; ; )
             {
