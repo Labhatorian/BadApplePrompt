@@ -59,11 +59,11 @@ namespace BadAppleCMD
             parameter = "-i " + path + " " + strWorkPath + "/temp/audio.wav";
             parameter = parameter.Replace("\\", "/");
 
-            if(!File.Exists(strWorkPath + "/temp/audio.wav"))
+            if (!File.Exists(strWorkPath + "/temp/audio.wav"))
             {
                 Execute(".\\ffmpeg.exe", parameter);
             }
-            
+
             Console.WriteLine("Finished");
 
             //Go through every frame and print it
@@ -71,8 +71,8 @@ namespace BadAppleCMD
             Console.BackgroundColor = ConsoleColor.Black;
             Console.CursorVisible = false;
             Console.Clear();
-            Console.SetWindowSize(120+1, 46+1);
-            Console.SetBufferSize(120+1, 46 + 1);
+            Console.SetWindowSize(120 + 1, 46 + 1);
+            Console.SetBufferSize(120 + 1, 46 + 1);
             //TODO Disable window resizing and window maximising
 
             //FPS counter
@@ -87,7 +87,8 @@ namespace BadAppleCMD
             Boolean finished = false;
             while (_totalframecounter <= fCount)
             {
-                if (_framecounter != 30) {
+                if (_framecounter != 30)
+                {
                     _framecounter++;
                     _totalframecounter++;
                     Console.Write(ConvertToAscii(new Bitmap(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png")));
@@ -133,10 +134,7 @@ namespace BadAppleCMD
 
         private static string ConvertToAscii(Bitmap image)
         {
-            int rowcount = 0;
-            int heightcount = 0;
             image = new Bitmap(image, new Size(image.Width / 4, image.Height / 4));
-            Boolean toggle = false;
             StringBuilder sb = new StringBuilder();
             for (int h = 0; h < image.Height; h++)
             {
@@ -147,32 +145,17 @@ namespace BadAppleCMD
                     int red = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
                     int green = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
                     int blue = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
-                    
-                    //Use the toggle flag to minimize height-wise stretch
-                    if (!toggle)
+                    if (red == 255 && green == 255 && blue == 255)
                     {
-                        if (red == 255 && green == 255 && blue == 255)
-                        {
-                            sb.Append("█");
-                        } else
-                        {
-                            sb.Append(" ");
-                        }
+                        sb.Append("█");
                     }
-                    rowcount++;
+                    else
+                    {
+                        sb.Append(" ");
+                    }
                 }
-                //TODO Can this be better?
-                if (!toggle)
-                {
-                    sb.Append("\n");
-                    heightcount++;
-                    h++;
-                    toggle = true;
-                }
-                else
-                {
-                    toggle = false;
-                }
+                sb.Append("\n");
+                h++;
             }
             return sb.ToString();
         }
@@ -180,7 +163,7 @@ namespace BadAppleCMD
         private static void OnTimedEvent(Object source, ElapsedEventArgs e)
         {
             _FPS = $"FPS: {_framecounter}";
-            _framecounter= 0 ;
+            _framecounter = 0;
         }
     }
 }
