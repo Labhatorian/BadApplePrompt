@@ -1,7 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.Media;
 using System.Text;
+using System.Threading;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
@@ -14,6 +16,11 @@ namespace BadAppleCMD
         private static string _FPS = "FPS: 0";
         private static SoundPlayer audio;
         private static string strWorkPath = "";
+
+        //For loading bars
+        private static string totalduration;
+        private static string currentdurationframe;
+        private static Boolean loadingFinished;
         static void Main(string[] args)
         {
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(ExitApplication);
@@ -32,7 +39,7 @@ namespace BadAppleCMD
             }
             else
             {
-                Console.BackgroundColor = ConsoleColor.Red;
+                Console.BackgroundColor = ConsoleColor.DarkRed;
                 Console.Clear();
                 string errorstring = "No file has been provided";
                 Console.SetCursorPosition((Console.WindowWidth - errorstring.Length) / 2, Console.WindowHeight / 2 - 3);
@@ -51,13 +58,13 @@ namespace BadAppleCMD
             di.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
 
             //Save frames and get audio
+            Console.BackgroundColor = ConsoleColor.DarkBlue;
             //TODO Add nifty loading bar instead of outputting it. allow for verbose as arg/option
             string parameter = "-i " + path + " " + strWorkPath + "/temp/%04d.png";
             parameter = parameter.Replace("\\", "/");
-            //todo get total runtime
-            Execute(".\\ffmpeg.exe", parameter);
-            //todo make screen here and calculate percentage and update screen
-
+            Console.CursorVisible = false;
+            Task task = Task.Run(() => { Execute(".\\ffmpeg.exe", parameter); });
+            LoadingBar("Getting every frame from the video...");
 
             parameter = "-i " + path + " " + strWorkPath + "/temp/audio.wav";
             parameter = parameter.Replace("\\", "/");
@@ -66,6 +73,7 @@ namespace BadAppleCMD
             if (!File.Exists(strWorkPath + "/temp/audio.wav"))
             {
                 Execute(".\\ffmpeg.exe", parameter);
+                LoadingBar("Getting audio from the video...");
             }
 
             Console.WriteLine("Finished");
@@ -73,7 +81,6 @@ namespace BadAppleCMD
             //Go through every frame and print it
             int fCount = Directory.GetFiles(strWorkPath + "/temp", "*", SearchOption.TopDirectoryOnly).Length;
             Console.BackgroundColor = ConsoleColor.Black;
-            Console.CursorVisible = false;
             Console.Clear();
 
             //todo use video resolution to get these values. Figure out max for 1920x1080?
@@ -100,6 +107,7 @@ namespace BadAppleCMD
                         Console.Write(ConvertToAscii(image));
                     }
                     Console.WriteLine(_FPS);
+                    File.Delete(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png");
                     Thread.Sleep(15);
                     Console.SetCursorPosition(0, 0);
                     _framecounter++;
@@ -107,6 +115,62 @@ namespace BadAppleCMD
                 }
             }
             Environment.Exit(0);
+        }
+
+        private static void LoadingBar(string MainString)
+        {
+            Console.Clear();
+            while (!loadingFinished)
+            {
+                Console.SetCursorPosition((Console.WindowWidth - MainString.Length) / 2, Console.WindowHeight / 2 - 3);
+                Console.WriteLine(MainString);
+                int totaldurationseconds = 1;
+                int currentdurationseconds = 0;
+
+                //convert to percentage
+                if (totalduration is not null && currentdurationframe is not null)
+                {
+                    try
+                    {
+                        DateTime totaldurationTime = DateTime.ParseExact(totalduration, "HH:mm:ss.ff",
+                                        CultureInfo.InvariantCulture);
+                        totaldurationseconds = totaldurationTime.Hour * 60 * 60 + totaldurationTime.Minute * 60 + totaldurationTime.Second + totaldurationTime.Millisecond / 100;
+
+                        DateTime currentdurationTime = DateTime.ParseExact(currentdurationframe, "HH:mm:ss.ff",
+                                               CultureInfo.InvariantCulture);
+                        currentdurationseconds = currentdurationTime.Hour * 60 * 60 + currentdurationTime.Minute * 60 + currentdurationTime.Second + currentdurationTime.Millisecond / 100;
+                    }
+                    catch (System.FormatException)
+                    {
+                        //ffmpeg hasnt started properly yet, ignore
+                    }
+
+                }
+
+                StringBuilder loadingbar = new("[");
+                int totalBars = (int)Math.Ceiling((double)(((double)currentdurationseconds / (double)totaldurationseconds * (double)100) / (double)5));
+
+                for (int i = 1; i <= 20; i++)
+                {
+                    if (totalBars > 0)
+                    {
+                        loadingbar.Append("█");
+                        totalBars--;
+                    }
+                    else
+                    {
+                        loadingbar.Append(" ");
+                    }
+                    if (i != 20)
+                    {
+                        loadingbar.Append("|");
+                    }
+                }
+                loadingbar.Append("]");
+
+                Console.SetCursorPosition((Console.WindowWidth - loadingbar.ToString().Length) / 2, Console.WindowHeight / 2);
+                Console.WriteLine(loadingbar.ToString());
+            }
         }
 
         private static void Execute(string exePath, string parameters)
@@ -123,17 +187,29 @@ namespace BadAppleCMD
 
             p.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
             {
-                Console.WriteLine(e.Data);
+                //Console.WriteLine(e.Data);
             });
             p.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
             {
-                Console.WriteLine(e.Data);
+                //Console.WriteLine(e.Data);
+                if(e.Data is not null)
+                {
+                    if (e.Data.Contains("Duration:"))
+                    {
+                        totalduration = e.Data.Substring(e.Data.LastIndexOf("Duration:") + 10, e.Data.LastIndexOf("Duration:") + 9);
+                    }
+                    if (e.Data.Contains("time="))
+                    {
+                        currentdurationframe = e.Data.Substring(e.Data.LastIndexOf("time=") + 5, e.Data.LastIndexOf("time=:") + 12);
+                    }
+                }
             });
 
             p.Start();
             p.BeginOutputReadLine();
             p.BeginErrorReadLine();
             p.WaitForExit();
+            loadingFinished= true;
         }
 
         private static string ConvertToAscii(Bitmap image)
