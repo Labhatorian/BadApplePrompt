@@ -6,11 +6,12 @@ namespace BadAppleCMD
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             string path = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0\\win-x64\\badapple.mp4";
 
             Console.WriteLine("Hello, World!");
+            //Console.SetWindowSize(100, 100);
 
             if (args.Length != 0)
             {
@@ -46,7 +47,7 @@ namespace BadAppleCMD
             string parameter = "-i " + path + " " + strWorkPath + "/frames/%04d.png";
             parameter = parameter.Replace("\\", "/");
 
-            Execute(".\\ffmpeg.exe", parameter);
+            //Execute(".\\ffmpeg.exe", parameter);
 
             Console.WriteLine("Finished");
 
@@ -55,15 +56,19 @@ namespace BadAppleCMD
             int fCount = Directory.GetFiles(strWorkPath + "/frames", "*", SearchOption.TopDirectoryOnly).Length;
             Console.BackgroundColor = ConsoleColor.Black;
             Console.CursorVisible = false;
+            Console.SetWindowSize(121, 44);
+
             Console.Clear();
             for (int i = 1; i <= fCount; i++)
             {
-                Console.Write(ConvertToAscii(new Bitmap(strWorkPath + $"\\frames\\{i:0000}.png")));
+                await Task.Delay(30);
+                FastConsole.WriteLine(ConvertToAscii(new Bitmap(strWorkPath + $"\\frames\\{i:0000}.png")));
+                
                 //Console.Clear();
             }
 
             //Delete temp folder
-            //TODO Free up files
+            FastConsole.Flush();
             //Directory.Delete(strWorkPath + "/frames", true);
 
             //Keep console open
