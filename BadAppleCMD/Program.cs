@@ -2,11 +2,15 @@
 using System.Drawing;
 using System.Media;
 using System.Text;
+using System.Timers;
+using Timer = System.Timers.Timer;
 
 namespace BadAppleCMD
 {
     internal class Program
     {
+        private static int _framecounter = 0;
+        private static string _FPS = "FPS: 0";
         static async Task Main(string[] args)
         {
             string path = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0\\win-x64\\badapple.mp4";
@@ -64,15 +68,22 @@ namespace BadAppleCMD
             Console.SetBufferSize(121, 45);
 
             Console.Clear();
+            //FPS counter
+            Timer timer = new Timer(1000);
+            timer.Elapsed += OnTimedEvent;
 
             //Play audio
             SoundPlayer audio = new SoundPlayer(strWorkPath + "/frames/audio.wav");
             audio.Play();
-            for (int i = 1; i <= fCount; i++)
+            timer.Start();
+            for (int i = 1; i <= fCount-1; i++)
             {
-                await Task.Delay(30);
+                //await Task.Delay(14);
+                Console.Clear(); 
                 Console.Write(ConvertToAscii(new Bitmap(strWorkPath + $"\\frames\\{i:0000}.png")));
-                //Console.Clear();
+                Console.WriteLine(_FPS);
+                _framecounter++;
+                Thread.Sleep(22);
             }
 
             //Delete temp folder
@@ -152,6 +163,12 @@ namespace BadAppleCMD
             }
             
             return sb.ToString();
+        }
+
+        private static void OnTimedEvent(Object source, ElapsedEventArgs e)
+        {
+            _FPS = $"FPS: {_framecounter}";
+            _framecounter= 0 ;
         }
     }
 }
