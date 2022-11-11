@@ -10,14 +10,13 @@ namespace BadAppleCMD
     internal class Program
     {
         private static int _framecounter = 0;
+        private static int _totalframecounter = 0;
         private static string _FPS = "FPS: 0";
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             string path = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0\\win-x64\\badapple.mp4";
 
             Console.WriteLine("Hello, World!");
-            //Console.SetWindowSize(100, 100);
-
             if (args.Length != 0)
             {
                 path = Path.GetDirectoryName(args[0])
@@ -41,59 +40,66 @@ namespace BadAppleCMD
             Console.WriteLine(path);
 
             ////Get every videoframe
-            string strExeFilePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            string strExeFilePath = System.AppContext.BaseDirectory;
             string strWorkPath = System.IO.Path.GetDirectoryName(strExeFilePath);
 
+            Console.WriteLine(strExeFilePath);
+            Console.WriteLine(strWorkPath);
+
             //Make temp hidden folder. ffmpeg can not create one on its own
-            DirectoryInfo di = Directory.CreateDirectory(strWorkPath + "/frames");
+            DirectoryInfo di = Directory.CreateDirectory(strWorkPath + "/temp");
             di.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
 
             //Save frames and get audio
-            //string parameter = "-i " + path + " " + strWorkPath + "/frames/%04d.png";
-            //parameter = parameter.Replace("\\", "/");
-            //Execute(".\\ffmpeg.exe", parameter);
+            //TODO Add nifty loading bar instead of outputting it
+            string parameter = "-i " + path + " " + strWorkPath + "/temp/%04d.png";
+            parameter = parameter.Replace("\\", "/");
+            Execute(".\\ffmpeg.exe", parameter);
 
-            //parameter = "-i " + path + " " + strWorkPath + "/frames/audio.wav";
-            //parameter = parameter.Replace("\\", "/");
-            //Execute(".\\ffmpeg.exe", parameter);
+            parameter = "-i " + path + " " + strWorkPath + "/temp/audio.wav";
+            parameter = parameter.Replace("\\", "/");
 
+            if(!File.Exists(strWorkPath + "/temp/audio.wav"))
+            {
+                Execute(".\\ffmpeg.exe", parameter);
+            }
+            
             Console.WriteLine("Finished");
 
             //Go through every frame and print it
-            //TODO Try one frame first before working on every frame at a set fps depending on how fast it can draw
-            int fCount = Directory.GetFiles(strWorkPath + "/frames", "*", SearchOption.TopDirectoryOnly).Length;
+            int fCount = Directory.GetFiles(strWorkPath + "/temp", "*", SearchOption.TopDirectoryOnly).Length;
             Console.BackgroundColor = ConsoleColor.Black;
             Console.CursorVisible = false;
-            Console.SetWindowSize(121, 45);
-            Console.SetBufferSize(121, 45);
-
             Console.Clear();
+            Console.SetWindowSize(120+1, 46+1);
+            Console.SetBufferSize(120+1, 46 + 1);
+            //TODO Disable window resizing and window maximising
+
             //FPS counter
             Timer timer = new Timer(1000);
             timer.Elapsed += OnTimedEvent;
 
             //Play audio
-            SoundPlayer audio = new SoundPlayer(strWorkPath + "/frames/audio.wav");
+            SoundPlayer audio = new SoundPlayer(strWorkPath + "/temp/audio.wav");
             audio.Play();
             timer.Start();
-            for (int i = 1; i <= fCount-1; i++)
+
+            Boolean finished = false;
+            while (_totalframecounter <= fCount)
             {
-                //await Task.Delay(14);
-                Console.Clear(); 
-                Console.Write(ConvertToAscii(new Bitmap(strWorkPath + $"\\frames\\{i:0000}.png")));
-                Console.WriteLine(_FPS);
-                _framecounter++;
-                Thread.Sleep(22);
+                if (_framecounter != 30) {
+                    _framecounter++;
+                    _totalframecounter++;
+                    Console.Write(ConvertToAscii(new Bitmap(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png")));
+                    Console.WriteLine(_FPS);
+                    Thread.Sleep(22);
+                    Console.SetCursorPosition(0, 0);
+                }
             }
 
             //Delete temp folder
             audio.Stop();
-            //Directory.Delete(strWorkPath + "/frames", true);
-            //Keep console open
-            for (; ; )
-            {
-                Thread.Sleep(100);
-            }
+            Directory.Delete(strWorkPath + "/temp", true);
         }
 
         private static void Execute(string exePath, string parameters)
@@ -127,11 +133,10 @@ namespace BadAppleCMD
 
         private static string ConvertToAscii(Bitmap image)
         {
-            string[] _AsciiChars = { " ", " ", " ", " ", " ", " ", " ", " ", " ", " ", "█" };
+            int rowcount = 0;
+            int heightcount = 0;
             image = new Bitmap(image, new Size(image.Width / 4, image.Height / 4));
-
             Boolean toggle = false;
-            int countlines = 0;
             StringBuilder sb = new StringBuilder();
             for (int h = 0; h < image.Height; h++)
             {
@@ -142,18 +147,26 @@ namespace BadAppleCMD
                     int red = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
                     int green = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
                     int blue = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
-                    Color grayColor = Color.FromArgb(red, green, blue);
+                    
                     //Use the toggle flag to minimize height-wise stretch
                     if (!toggle)
                     {
-                        int index = (grayColor.R * 10) / 255;
-                        sb.Append(_AsciiChars[index]);
+                        if (red == 255 && green == 255 && blue == 255)
+                        {
+                            sb.Append("█");
+                        } else
+                        {
+                            sb.Append(" ");
+                        }
                     }
+                    rowcount++;
                 }
+                //TODO Can this be better?
                 if (!toggle)
                 {
                     sb.Append("\n");
-                    countlines++;
+                    heightcount++;
+                    h++;
                     toggle = true;
                 }
                 else
@@ -161,7 +174,6 @@ namespace BadAppleCMD
                     toggle = false;
                 }
             }
-            
             return sb.ToString();
         }
 
