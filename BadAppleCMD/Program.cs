@@ -12,7 +12,7 @@ namespace BadAppleCMD
         private static string? strWorkPath = "";
         private static Boolean _Verbose = false;
 
-        //Videoplayer
+        //Video player
         private static int _framecounter = 0;
         private static int _totalframecounter = 1;
         private static string _FPS = "FPS: 0";
@@ -27,6 +27,9 @@ namespace BadAppleCMD
 
         static void Main(string[] args)
         {
+            //TODO Make use of sections
+            //TODO Write comments
+            //TODO Write summaries
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(ExitApplication);
             Console.CursorVisible = false;
 
@@ -50,17 +53,18 @@ namespace BadAppleCMD
                 //Thread.Sleep(5000);
                 //Environment.Exit(0);
             }
-            //Prepare to get every frame
+            //Prepare to get videe ready for play
             string strExeFilePath = AppContext.BaseDirectory;
             strWorkPath = Path.GetDirectoryName(strExeFilePath);
 
-            //Make temp hidden folder. ffmpeg can not create one on its own
+            //Make temp hidden folder. ffmpeg can not create one on its for some reason
             DirectoryInfo di = Directory.CreateDirectory(strWorkPath + "/temp");
             di.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
 
             Screens.WriteScreen(ConsoleColor.DarkBlue, "Now Playing", path);
             Thread.Sleep(2000);
 
+            //TODO Make these ffmpeg functions their own function to remove the clutter in this part of the code
             //Get information about video
             Console.Clear();
             string parameter = "-v error -select_streams v:0 -show_entries stream=width,height,avg_frame_rate -of default=nw=1 " + path;
@@ -69,9 +73,10 @@ namespace BadAppleCMD
             {
                 Screens.InformationOrLoadingBar("Getting information about the video...", true);
             }
-            Thread.Sleep(2000);
+            Thread.Sleep(1000);
             task.Wait();
 
+            //Get frames
             parameter = "-i " + path + " " + strWorkPath + "/temp/%04d.png";
             parameter = parameter.Replace("\\", "/");
             Console.CursorVisible = false;
@@ -85,15 +90,18 @@ namespace BadAppleCMD
             parameter = "-i " + path + " " + strWorkPath + "/temp/audio.wav";
             parameter = parameter.Replace("\\", "/");
 
-            if (!File.Exists(strWorkPath + "/temp/audio.wav"))
+            //Get audio - ffmpeg cries when a file already exists, unlike with images
+            if (File.Exists(strWorkPath + "/temp/audio.wav"))
             {
-                task = Task.Run(() => { Execute(".\\ffmpeg.exe", parameter, false); });
-                if (!_Verbose)
-                {
-                    Screens.InformationOrLoadingBar("Getting audio from the video...", false);
-                }
-                task.Wait();
+                File.Delete(strWorkPath + "/temp/audio.wav");
             }
+            task = Task.Run(() => { Execute(".\\ffmpeg.exe", parameter, false); });
+            if (!_Verbose)
+            {
+                Screens.InformationOrLoadingBar("Getting audio from the video...", false);
+            }
+            task.Wait();
+
 
             Console.WriteLine("Finished");
 
@@ -109,7 +117,7 @@ namespace BadAppleCMD
             Console.SetWindowSize(VideoWidth / _Factor, VideoHeight / _Factor / 2 + 2);
             Console.SetBufferSize(VideoWidth / _Factor, VideoHeight / _Factor / 2 + 2);
 
-            //TODO Disable window resizing and window maximising
+            //TODO Disable window resizing and window maximising. This has to be done with P/Invoke, Windows DLLs and API
 
             //FPS counter
             Timer timer = new(1000);
@@ -140,6 +148,8 @@ namespace BadAppleCMD
             Environment.Exit(0);
         }
 
+
+        //TODO Move this to its own class alongside the full suite of ffmpeg/ffprobe section in the program???
         private static void Execute(string exePath, string parameters, Boolean getinformation)
         {
             string result = String.Empty;
@@ -152,7 +162,7 @@ namespace BadAppleCMD
             p.StartInfo.RedirectStandardError = true;
             p.StartInfo.FileName = exePath;
             p.StartInfo.Arguments = parameters;
-
+            //TODO Test different videos with different codes, resolutions, framerate
             //For ffprobe
             p.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
             {
@@ -160,29 +170,29 @@ namespace BadAppleCMD
                 {
                     Console.WriteLine(e.Data);
                 }
-                    if (e.Data is not null)
+                if (e.Data is not null)
+                {
+                    if (exePath.Contains("ffprobe.exe") && getinformation)
                     {
-                        if (exePath.Contains("ffprobe.exe") && getinformation)
+                        if (e.Data.Contains("width="))
                         {
-                            if (e.Data.Contains("width="))
-                            {
-                                VideoWidth = int.Parse(e.Data[(e.Data.LastIndexOf("width=") + 6)..]);
-                            }
+                            VideoWidth = int.Parse(e.Data[(e.Data.LastIndexOf("width=") + 6)..]);
+                        }
 
-                            if (e.Data.Contains("height="))
-                            {
-                                VideoHeight = int.Parse(e.Data[(e.Data.LastIndexOf("height=") + 7)..]);
-                            }
+                        if (e.Data.Contains("height="))
+                        {
+                            VideoHeight = int.Parse(e.Data[(e.Data.LastIndexOf("height=") + 7)..]);
+                        }
 
-                            if (e.Data.Contains("avg_frame_rate="))
-                            {
-                                string frameratefraction = e.Data[(e.Data.LastIndexOf("avg_frame_rate=") + 15)..];
-                                int valueOne = int.Parse(frameratefraction.Split('/')[0]);
-                                int valueTwo = int.Parse(frameratefraction[(frameratefraction.LastIndexOf('/') + 1)..]);
-                                VideoFrameRate = valueOne / valueTwo;
-                            }
+                        if (e.Data.Contains("avg_frame_rate="))
+                        {
+                            string frameratefraction = e.Data[(e.Data.LastIndexOf("avg_frame_rate=") + 15)..];
+                            int valueOne = int.Parse(frameratefraction.Split('/')[0]);
+                            int valueTwo = int.Parse(frameratefraction[(frameratefraction.LastIndexOf('/') + 1)..]);
+                            VideoFrameRate = valueOne / valueTwo;
                         }
                     }
+                }
             });
 
             //For ffmpeg
@@ -193,20 +203,20 @@ namespace BadAppleCMD
                     Console.WriteLine(e.Data);
                 }
                 if (e.Data is not null)
+                {
+                    if (exePath.Contains("ffmpeg.exe"))
                     {
-                        if (exePath.Contains("ffmpeg.exe"))
+                        if (e.Data.Contains("Duration:") && getinformation)
                         {
-                            if (e.Data.Contains("Duration:") && getinformation)
-                            {
-                                Screens.TotalDuration = e.Data.Substring(e.Data.LastIndexOf("Duration:") + 10, e.Data.LastIndexOf("Duration:") + 9);
-                            }
-                            if (e.Data.Contains("time="))
-                            {
-                                Screens.CurrentDuration = e.Data.Substring(e.Data.LastIndexOf("time=") + 5, e.Data.LastIndexOf("time=:") + 12);
-                            }
+                            Screens.TotalDuration = e.Data.Substring(e.Data.LastIndexOf("Duration:") + 10, e.Data.LastIndexOf("Duration:") + 9);
                         }
-
+                        if (e.Data.Contains("time="))
+                        {
+                            Screens.CurrentDuration = e.Data.Substring(e.Data.LastIndexOf("time=") + 5, e.Data.LastIndexOf("time=:") + 12);
+                        }
                     }
+
+                }
             });
 
             p.Start();
@@ -277,7 +287,15 @@ namespace BadAppleCMD
             //Delete temp folder
             if (Directory.Exists(strWorkPath + "/temp"))
             {
-                Directory.Delete(strWorkPath + "/temp", true);
+                try
+                {
+                    Directory.Delete(strWorkPath + "/temp", true);
+                }
+                catch (IOException)
+                {
+                    //Some or one file is unable to get deleted. Presumably because the user just caught the program still using it.
+                    //No big deal, tests resulted this in always being one file which can stay in the temp folder. Next time it will get overwritten
+                }
             }
         }
     }
