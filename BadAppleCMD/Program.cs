@@ -10,6 +10,7 @@ namespace BadAppleCMD
     public class Program
     {   //Program
         private static string? strWorkPath = "";
+        private static Boolean _Verbose = false;
 
         //Videoplayer
         private static int _framecounter = 0;
@@ -17,6 +18,7 @@ namespace BadAppleCMD
         private static string _FPS = "FPS: 0";
         private static Boolean _Desync = false;
         private static SoundPlayer? audio;
+        private static int _Factor = 4;
 
         //Video information
         public static int VideoWidth { get; set; }
@@ -26,6 +28,7 @@ namespace BadAppleCMD
         static void Main(string[] args)
         {
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(ExitApplication);
+            Console.CursorVisible = false;
 
             //todo clear this out for release
             string path = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0\\win-x64\\badapple.mp4";
@@ -59,17 +62,25 @@ namespace BadAppleCMD
             Thread.Sleep(2000);
 
             //Get information about video
+            Console.Clear();
             string parameter = "-v error -select_streams v:0 -show_entries stream=width,height,avg_frame_rate -of default=nw=1 " + path;
             Task task = Task.Run(() => { Execute(".\\ffprobe.exe", parameter, true); });
-            Screens.InformationOrLoadingBar("Getting information about the video...", true);
+            if (!_Verbose)
+            {
+                Screens.InformationOrLoadingBar("Getting information about the video...", true);
+            }
             Thread.Sleep(2000);
+            task.Wait();
 
-            //TODO Allow verbose loading bars
             parameter = "-i " + path + " " + strWorkPath + "/temp/%04d.png";
             parameter = parameter.Replace("\\", "/");
             Console.CursorVisible = false;
             task = Task.Run(() => { Execute(".\\ffmpeg.exe", parameter, true); });
-            Screens.InformationOrLoadingBar("Getting every frame from the video...", false);
+            if (!_Verbose)
+            {
+                Screens.InformationOrLoadingBar("Getting every frame from the video...", false);
+            }
+            task.Wait();
 
             parameter = "-i " + path + " " + strWorkPath + "/temp/audio.wav";
             parameter = parameter.Replace("\\", "/");
@@ -77,7 +88,11 @@ namespace BadAppleCMD
             if (!File.Exists(strWorkPath + "/temp/audio.wav"))
             {
                 task = Task.Run(() => { Execute(".\\ffmpeg.exe", parameter, false); });
-                Screens.InformationOrLoadingBar("Getting audio from the video...", false);
+                if (!_Verbose)
+                {
+                    Screens.InformationOrLoadingBar("Getting audio from the video...", false);
+                }
+                task.Wait();
             }
 
             Console.WriteLine("Finished");
@@ -88,8 +103,11 @@ namespace BadAppleCMD
             Console.Clear();
 
             //todo use video resolution to get these values. Figure out max for 1920x1080?
-            Console.SetWindowSize(120, 46 + 1);
-            Console.SetBufferSize(120, 46 + 1);
+            //Bad Apple is 480x360 - Using 120, 46 + 1 (one extra for fps counter) - Difference of 360 and 314
+            //Width is /4. Same factor as the ASCII converter
+            //TODO Height is more complicated with / 4 / 2 + 2. Will this work with other videos and factors?
+            Console.SetWindowSize(VideoWidth / _Factor, VideoHeight / _Factor / 2 + 2);
+            Console.SetBufferSize(VideoWidth / _Factor, VideoHeight / _Factor / 2 + 2);
 
             //TODO Disable window resizing and window maximising
 
@@ -138,51 +156,57 @@ namespace BadAppleCMD
             //For ffprobe
             p.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
             {
-                ///Console.WriteLine(e.Data);
-                if (e.Data is not null)
+                if (_Verbose)
                 {
-                    if (exePath.Contains("ffprobe.exe") && getinformation)
+                    Console.WriteLine(e.Data);
+                }
+                    if (e.Data is not null)
                     {
-                        if (e.Data.Contains("width="))
+                        if (exePath.Contains("ffprobe.exe") && getinformation)
                         {
-                            VideoWidth = int.Parse(e.Data[(e.Data.LastIndexOf("width=") + 6)..]);
-                        }
+                            if (e.Data.Contains("width="))
+                            {
+                                VideoWidth = int.Parse(e.Data[(e.Data.LastIndexOf("width=") + 6)..]);
+                            }
 
-                        if (e.Data.Contains("height="))
-                        {
-                            VideoHeight = int.Parse(e.Data[(e.Data.LastIndexOf("height=") + 7)..]);
-                        }
+                            if (e.Data.Contains("height="))
+                            {
+                                VideoHeight = int.Parse(e.Data[(e.Data.LastIndexOf("height=") + 7)..]);
+                            }
 
-                        if (e.Data.Contains("avg_frame_rate="))
-                        {
-                            string frameratefraction = e.Data[(e.Data.LastIndexOf("avg_frame_rate=") + 15)..];
-                            int valueOne = int.Parse(frameratefraction.Split('/')[0]);
-                            int valueTwo = int.Parse(frameratefraction[(frameratefraction.LastIndexOf('/') + 1)..]);
-                            VideoFrameRate = valueOne / valueTwo;
+                            if (e.Data.Contains("avg_frame_rate="))
+                            {
+                                string frameratefraction = e.Data[(e.Data.LastIndexOf("avg_frame_rate=") + 15)..];
+                                int valueOne = int.Parse(frameratefraction.Split('/')[0]);
+                                int valueTwo = int.Parse(frameratefraction[(frameratefraction.LastIndexOf('/') + 1)..]);
+                                VideoFrameRate = valueOne / valueTwo;
+                            }
                         }
                     }
-                }
             });
 
             //For ffmpeg
             p.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
             {
-                ///Console.WriteLine(e.Data);
-                if (e.Data is not null)
+                if (_Verbose)
                 {
-                    if (exePath.Contains("ffmpeg.exe"))
-                    {
-                        if (e.Data.Contains("Duration:") && getinformation)
-                        {
-                            Screens.TotalDuration = e.Data.Substring(e.Data.LastIndexOf("Duration:") + 10, e.Data.LastIndexOf("Duration:") + 9);
-                        }
-                        if (e.Data.Contains("time="))
-                        {
-                            Screens.CurrentDuration = e.Data.Substring(e.Data.LastIndexOf("time=") + 5, e.Data.LastIndexOf("time=:") + 12);
-                        }
-                    }
-
+                    Console.WriteLine(e.Data);
                 }
+                if (e.Data is not null)
+                    {
+                        if (exePath.Contains("ffmpeg.exe"))
+                        {
+                            if (e.Data.Contains("Duration:") && getinformation)
+                            {
+                                Screens.TotalDuration = e.Data.Substring(e.Data.LastIndexOf("Duration:") + 10, e.Data.LastIndexOf("Duration:") + 9);
+                            }
+                            if (e.Data.Contains("time="))
+                            {
+                                Screens.CurrentDuration = e.Data.Substring(e.Data.LastIndexOf("time=") + 5, e.Data.LastIndexOf("time=:") + 12);
+                            }
+                        }
+
+                    }
             });
 
             p.Start();
@@ -196,7 +220,7 @@ namespace BadAppleCMD
         {
             //todo add option for colours. however, black and white should be default. run with args or add settings?
             StringBuilder sb = new();
-            using (image = new Bitmap(image, new Size(image.Width / 4, image.Height / 4)))
+            using (image = new Bitmap(image, new Size(image.Width / _Factor, image.Height / _Factor)))
             {
                 for (int h = 0; h < image.Height; h++)
                 {
@@ -240,12 +264,14 @@ namespace BadAppleCMD
         static void ExitApplication(object sender, EventArgs e)
         {
             //todo test every case
-            //todo different message on program error?
-            Screens.WriteScreen(ConsoleColor.DarkBlue, "Thank you!", "Cleaning up and exiting...");
-
             audio?.Stop();
             _totalframecounter = 999999999;
             GC.Collect();
+
+            Thread.Sleep(500);
+            Screens.WriteScreen(ConsoleColor.DarkBlue, "Thank you!", "Cleaning up and exiting...");
+            Thread.Sleep(500);
+
             GC.WaitForPendingFinalizers();
 
             //Delete temp folder
