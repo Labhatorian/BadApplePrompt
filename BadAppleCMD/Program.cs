@@ -19,28 +19,33 @@ namespace BadAppleCMD
         private static string _FPS = "FPS: 0";
         private static Boolean _Desync = false;
         private static SoundPlayer? audio;
-        private static int _Factor = 16;
+        //TODO Figure out best factors
+        //360p -> 4x - 1080p -> 16x
+        private static int _Factor = 4;
 
         //Video information
         public static int VideoWidth { get; set; }
         public static int VideoHeight { get; set; }
         public static int VideoFrameRate { get; set; }
 
+        private static int _VideoWidthColumns = 0;
+        private static int _VideoHeightColumns = 0;
+
         static void Main(string[] args)
         {
             //TODO Make use of sections
             //TODO Write comments
             //TODO Write summaries
+            //TODO Write tests in a testproject???
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(ExitApplication);
             Console.SetWindowSize(120, 30);///Default
-            Console.SetBufferSize(160, 80);//Default
+            Console.SetBufferSize(120, 30);//Default
             Console.CursorVisible = false;
 
             //todo clear this out for release
-            string path = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0-windows10.0.22621.0\\win-x64\\badapple.mp4";
+            string path = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0-windows10.0.22621.0\\win-x64\\Badapple.mp4";
 
-            //todo add .jpg option? could we do that in a settings page before we start or pass as arg? Maybe both, same for colour
-            //todo make sure we calculate window size first and set it (probably not needed)
+            //todo add .jpg option? could we do that in a settings page before we start or pass as arg? Maybe both, just like optional colours
             //todo when no file is dropped, allow to input url?
             if (args.Length != 0)
             {
@@ -56,14 +61,15 @@ namespace BadAppleCMD
                 //Thread.Sleep(5000);
                 //Environment.Exit(0);
             }
-            //Prepare to get videe ready for play
-            string strExeFilePath = AppContext.BaseDirectory;
-            strWorkPath = Path.GetDirectoryName(strExeFilePath);
+            //Get the path that we are workig in
+            strWorkPath = Path.GetDirectoryName(AppContext.BaseDirectory);
 
             //Make temp hidden folder. ffmpeg can not create one on its for some reason
             DirectoryInfo di = Directory.CreateDirectory(strWorkPath + "/temp");
             di.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
 
+            //Show video that will get played
+            //TODO Only show filename? Maybe get metadata
             Screens.WriteScreen(ConsoleColor.DarkBlue, "Now Playing", path);
             Thread.Sleep(2000);
 
@@ -84,6 +90,7 @@ namespace BadAppleCMD
             Console.CursorVisible = false;
             task = Task.Run(() => { Execute(".\\ffmpeg.exe", parameter, true); });
             //TODO This does not work correctly on videos that are not bad apple
+            //TODO resize as soon as frames get added -> FileSystemWatcher
             if (!_Verbose)
             {
                 Screens.InformationOrLoadingBar("Getting every frame from the video...", false);
@@ -105,10 +112,11 @@ namespace BadAppleCMD
             }
             task.Wait();
 
-            //Resize every image to its factor
-            //TODO Loading bar using frames - overloading?
+
+
             int fCount = Directory.GetFiles(strWorkPath + "/temp", "*", SearchOption.TopDirectoryOnly).Length;
 
+            //UNDONE Resize every image to its factor -> Will get removed later
             Screens.WriteScreen(ConsoleColor.DarkBlue, "Resizing frames", "[LoadingBar - Work In Progress]");
             while (_totalframecounter < fCount)
             {
@@ -120,42 +128,36 @@ namespace BadAppleCMD
                 resizedImage.Save(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png", ImageFormat.Png);
                 _totalframecounter++;
             }
-
             _totalframecounter = 1;
 
-            Console.WriteLine("Finished");
+            //Get the right window sizes. Max is dependent on user screen resolution.
+            using (Bitmap image = new(strWorkPath + $"\\temp\\{1:0000}.png"))
+            {
+                Console.Write(ConvertToAscii(image, true));
+            }
 
+            if (_VideoWidthColumns > Console.LargestWindowWidth)
+            {
+                _VideoWidthColumns = Console.LargestWindowWidth;
+            }
+            _VideoHeightColumns += 1; //For FPS Counter, and it needs one ex
+            if (_VideoHeightColumns > Console.LargestWindowHeight)
+            {
+                _VideoHeightColumns = Console.LargestWindowHeight;
+            }
 
+            Console.SetWindowSize(_VideoWidthColumns, _VideoHeightColumns);
+            Console.SetBufferSize(_VideoWidthColumns, _VideoHeightColumns);
             Console.BackgroundColor = ConsoleColor.Black;
             Console.Clear();
 
-            //todo use video resolution to get these values. Figure out max for 1920x1080?
-            //Bad Apple is 480x360 - Using 120, 46 + 1 (one extra for fps counter) - Difference of 360 and 314
-            //Width is /4. Same factor as the ASCII converter
-            //TODO Height is more complicated with / 4 / 2 + 2. Will this work with other videos and factors?
-            //TODO now there is a check for max console height and width. But how does this work together with the ASCII converter which uses the factor?
-
-            int consolewidth = VideoWidth / _Factor;
-            int consoleheight = VideoHeight / _Factor / 2 + 2;
-            if (consolewidth > Console.LargestWindowWidth)
-            {
-                consolewidth = Console.LargestWindowWidth;
-            }
-            if (consoleheight > Console.LargestWindowHeight)
-            {
-                consoleheight = Console.LargestWindowHeight;
-            }
-            Console.SetWindowSize(consolewidth, consoleheight);
-            Console.SetBufferSize(consolewidth, consoleheight);
-
-
             //TODO Disable window resizing and window maximising. This has to be done with P/Invoke, Windows DLLs and API
 
-            //FPS counter
+            //FPS counter timer and event
             Timer timer = new(1000);
             timer.Elapsed += OnTimedEvent;
 
-            //Play audio
+            //Play audio of video
             audio = new SoundPlayer(strWorkPath + "/temp/audio.wav");
             if (File.Exists(strWorkPath + "/temp/audio.wav"))
             {
@@ -165,14 +167,15 @@ namespace BadAppleCMD
 
             while (_totalframecounter < fCount)
             {
+                Console.CursorVisible = false; //It likes to turn itself back on
                 if (_framecounter != VideoFrameRate)
                 {
-                    //todo calculate how many 0s are needed
+                    //todo calculate how many 0s are needed. bigger videos will require more
                     using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png"))
                     {
-                        Console.Write(ConvertToAscii(image));
+                        Console.Write(ConvertToAscii(image, false));
                     }
-                    Console.WriteLine(_FPS);
+                    Console.Write(_FPS);
                     File.Delete(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png");
                     Thread.Sleep(VideoFrameRate / (_Factor / 2));
                     Console.SetCursorPosition(0, 0);
@@ -197,7 +200,7 @@ namespace BadAppleCMD
             p.StartInfo.RedirectStandardError = true;
             p.StartInfo.FileName = exePath;
             p.StartInfo.Arguments = parameters;
-            //TODO Test different videos with different codes, resolutions, framerate
+            //TODO Test different videos with different codes, resolutions, framerate, as testing resulted in a different video not getting right values for Time= and Duration=
             //For ffprobe
             p.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
             {
@@ -261,16 +264,17 @@ namespace BadAppleCMD
             Screens.LoadingFinished = true;
         }
 
-        private static string ConvertToAscii(Bitmap image)
+        private static string ConvertToAscii(Bitmap image, Boolean GetColumns)
         {
             //todo add option for colours. however, black and white should be default. run with args or add settings?
-            //todo resize every image before to increase performance
             StringBuilder sb = new();
+            int height = 0;
             using (image = new Bitmap(image))
             {
                 for (int h = 0; h < image.Height; h++)
                 {
-                    for (int w = 0; w < image.Width; w++)
+                    int w;
+                    for (w = 0; w < image.Width; w++)
                     {
                         Color pixelColor = image.GetPixel(w, h);
                         //Average out the RGB components to find the Gray Color
@@ -288,8 +292,13 @@ namespace BadAppleCMD
                     }
                     sb.Append('\n');
                     h++;
+
+                    _VideoWidthColumns = w;
+                    height++;
                 }
             }
+            _VideoHeightColumns = height;
+            sb.Length -= 1; //Last linebreak GONE
             return sb.ToString();
         }
 

@@ -21,7 +21,7 @@ namespace BadAppleCMD
 
         public static void InformationOrLoadingBar(string MainString, Boolean Information)
         {
-            //todo add additional option to display a third line
+            //todo add additional option to display a third line??? (For what again?)
             //todo Use WriteScreen() to save code
             Console.Clear();
             while (!LoadingFinished)
@@ -67,11 +67,11 @@ namespace BadAppleCMD
                 }
                 catch (System.FormatException)
                 {
-                    //ffmpeg hasnt started properly yet, ignore
+                    //ffmpeg hasnt started working on the video yet, ignore
                 }
             }
 
-
+            //TODO Are we sure this is right?
             int totalBars = (int)Math.Ceiling((double)(((double)currentdurationseconds / (double)totaldurationseconds * (double)100) / (double)5));
 
             for (int i = 1; i <= 20; i++)
