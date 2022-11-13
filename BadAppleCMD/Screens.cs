@@ -96,7 +96,7 @@ namespace BadAppleCMD
         {
             loadingbar.Append($"Resolution= {Program.VideoWidth}x{Program.VideoHeight}");
             loadingbar.Append(" | ");
-            loadingbar.Append($"Framerate= {Program.VideoFrameRate}");
+            loadingbar.Append($"Framerate= {Program.VideoFrameRate} FPS");
         }
     }
 }

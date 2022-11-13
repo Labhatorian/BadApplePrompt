@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Media;
 using System.Text;
 using System.Timers;
@@ -18,7 +19,7 @@ namespace BadAppleCMD
         private static string _FPS = "FPS: 0";
         private static Boolean _Desync = false;
         private static SoundPlayer? audio;
-        private static int _Factor = 4;
+        private static int _Factor = 16;
 
         //Video information
         public static int VideoWidth { get; set; }
@@ -31,10 +32,12 @@ namespace BadAppleCMD
             //TODO Write comments
             //TODO Write summaries
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(ExitApplication);
+            Console.SetWindowSize(120, 30);///Default
+            Console.SetBufferSize(160, 80);//Default
             Console.CursorVisible = false;
 
             //todo clear this out for release
-            string path = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0\\win-x64\\badapple.mp4";
+            string path = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0-windows10.0.22621.0\\win-x64\\badapple.mp4";
 
             //todo add .jpg option? could we do that in a settings page before we start or pass as arg? Maybe both, same for colour
             //todo make sure we calculate window size first and set it (probably not needed)
@@ -76,11 +79,11 @@ namespace BadAppleCMD
             Thread.Sleep(1000);
             task.Wait();
 
-            //Get frames
             parameter = "-i " + path + " " + strWorkPath + "/temp/%04d.png";
             parameter = parameter.Replace("\\", "/");
             Console.CursorVisible = false;
             task = Task.Run(() => { Execute(".\\ffmpeg.exe", parameter, true); });
+            //TODO This does not work correctly on videos that are not bad apple
             if (!_Verbose)
             {
                 Screens.InformationOrLoadingBar("Getting every frame from the video...", false);
@@ -102,11 +105,27 @@ namespace BadAppleCMD
             }
             task.Wait();
 
+            //Resize every image to its factor
+            //TODO Loading bar using frames - overloading?
+            int fCount = Directory.GetFiles(strWorkPath + "/temp", "*", SearchOption.TopDirectoryOnly).Length;
+
+            Screens.WriteScreen(ConsoleColor.DarkBlue, "Resizing frames", "[LoadingBar - Work In Progress]");
+            while (_totalframecounter < fCount)
+            {
+                Bitmap resizedImage;
+                using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png"))
+                {
+                    resizedImage = new(image, new Size(image.Width / _Factor, image.Height / _Factor));
+                }
+                resizedImage.Save(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png", ImageFormat.Png);
+                _totalframecounter++;
+            }
+
+            _totalframecounter = 1;
 
             Console.WriteLine("Finished");
 
-            //Go through every frame and print it
-            int fCount = Directory.GetFiles(strWorkPath + "/temp", "*", SearchOption.TopDirectoryOnly).Length;
+
             Console.BackgroundColor = ConsoleColor.Black;
             Console.Clear();
 
@@ -114,8 +133,21 @@ namespace BadAppleCMD
             //Bad Apple is 480x360 - Using 120, 46 + 1 (one extra for fps counter) - Difference of 360 and 314
             //Width is /4. Same factor as the ASCII converter
             //TODO Height is more complicated with / 4 / 2 + 2. Will this work with other videos and factors?
-            Console.SetWindowSize(VideoWidth / _Factor, VideoHeight / _Factor / 2 + 2);
-            Console.SetBufferSize(VideoWidth / _Factor, VideoHeight / _Factor / 2 + 2);
+            //TODO now there is a check for max console height and width. But how does this work together with the ASCII converter which uses the factor?
+
+            int consolewidth = VideoWidth / _Factor;
+            int consoleheight = VideoHeight / _Factor / 2 + 2;
+            if (consolewidth > Console.LargestWindowWidth)
+            {
+                consolewidth = Console.LargestWindowWidth;
+            }
+            if (consoleheight > Console.LargestWindowHeight)
+            {
+                consoleheight = Console.LargestWindowHeight;
+            }
+            Console.SetWindowSize(consolewidth, consoleheight);
+            Console.SetBufferSize(consolewidth, consoleheight);
+
 
             //TODO Disable window resizing and window maximising. This has to be done with P/Invoke, Windows DLLs and API
 
@@ -125,7 +157,10 @@ namespace BadAppleCMD
 
             //Play audio
             audio = new SoundPlayer(strWorkPath + "/temp/audio.wav");
-            audio.Play();
+            if (File.Exists(strWorkPath + "/temp/audio.wav"))
+            {
+                audio?.Play();
+            }
             timer.Start();
 
             while (_totalframecounter < fCount)
@@ -139,7 +174,7 @@ namespace BadAppleCMD
                     }
                     Console.WriteLine(_FPS);
                     File.Delete(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png");
-                    Thread.Sleep(VideoFrameRate / 2);
+                    Thread.Sleep(VideoFrameRate / (_Factor / 2));
                     Console.SetCursorPosition(0, 0);
                     _framecounter++;
                     _totalframecounter++;
@@ -229,8 +264,9 @@ namespace BadAppleCMD
         private static string ConvertToAscii(Bitmap image)
         {
             //todo add option for colours. however, black and white should be default. run with args or add settings?
+            //todo resize every image before to increase performance
             StringBuilder sb = new();
-            using (image = new Bitmap(image, new Size(image.Width / _Factor, image.Height / _Factor)))
+            using (image = new Bitmap(image))
             {
                 for (int h = 0; h < image.Height; h++)
                 {
@@ -294,7 +330,8 @@ namespace BadAppleCMD
                 catch (IOException)
                 {
                     //Some or one file is unable to get deleted. Presumably because the user just caught the program still using it.
-                    //No big deal, tests resulted this in always being one file which can stay in the temp folder. Next time it will get overwritten
+                    //No big deal, tests resulted this in always being one file which can stay in the temp folder. Only resulting in a few megabytes of lost space.
+                    //Next time it will get overwritten!
                 }
             }
         }
