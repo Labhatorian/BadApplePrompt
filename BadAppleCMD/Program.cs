@@ -12,6 +12,7 @@ namespace BadAppleCMD
     {   //Program
         private static string? strWorkPath = "";
         private static Boolean _Verbose = false;
+        private static Boolean _Colour = false;
 
         //Video player
         private static int _framecounter = 0;
@@ -268,6 +269,8 @@ namespace BadAppleCMD
         {
             //todo add option for colours. however, black and white should be default. run with args or add settings?
             StringBuilder sb = new();
+            Queue<int> colours = null;
+
             int height = 0;
             using (image = new Bitmap(image))
             {
@@ -279,15 +282,49 @@ namespace BadAppleCMD
                         Color pixelColor = image.GetPixel(w, h);
                         //Average out the RGB components to find the Gray Color
                         int red = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
-                        int green = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
-                        int blue = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
-                        if (red > 15 && green > 15 && blue > 15)
+                        //Testing has resulted in 15 being the best value for BW videos
+                        if (red > 15)
                         {
                             sb.Append('█');
                         }
                         else
                         {
                             sb.Append(' ');
+                        }
+
+                        //Black       = 000,000,000-015,015,015 = 0
+                        //DarkBlue    = 016,016,016-031,031,031 = 1
+                        //DarkGreen   = 032,032,032-047,047,047 = 2
+                        //DarkCyan    = 048,048,048-063,063,063 = 3
+                        //DarkRed     = 064,064,064-079,079,079 = 4
+                        //DarkMagenta = 080,080,080-095,095,095 = 5
+                        //DarkYellow  = 096,096,096-111,111,111 = 6
+                        //DarkGray    = 112,112,112-127,127,127 = 8
+                        //Blue        = 128,128,128-143,143,143 = 9
+                        //Green       = 144,144,144-159,159,159 = 10
+                        //Cyan        = 160,160,160-175,175,175 = 11
+                        //Red         = 176,176,176-191,191,191 = 12
+                        //Magenta     = 192,192,192-207,207,207 = 13
+                        //Yellow      = 208,208,208-223,223,223 = 14
+                        //Gray        = 224,224,224-239,239,239 = 7
+                        //White       = 240,240,240-255,255,255 = 15
+
+                        if (_Colour)
+                        {
+                            colours = new();
+                            if (red / 16 is >= 7 and < 14)
+                            {
+                                //Gray should be higher up but it isn't in ConsoleColour. So we need to account for everything inbetween
+                                colours.Enqueue((red / 16) + 1); //7-13
+                            }
+                            else if (red / 16 == 14)
+                            {
+                                colours.Enqueue(7); //Gray 7
+                            }
+                            else
+                            {
+                                colours.Enqueue(red / 16); //0-6 and 15
+                            }
                         }
                     }
                     sb.Append('\n');
