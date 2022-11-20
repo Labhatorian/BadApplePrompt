@@ -12,7 +12,8 @@ namespace BadAppleCMD
     {   //Program
         private static string? strWorkPath = "";
         private static Boolean _Verbose = false;
-        private static Boolean _Colour = false;
+        private static Boolean _Colour = true;
+        private static Queue<int> colours = null;
 
         //Video player
         private static int _framecounter = 0;
@@ -22,7 +23,7 @@ namespace BadAppleCMD
         private static SoundPlayer? audio;
         //TODO Figure out best factors
         //360p -> 4x - 1080p -> 16x
-        private static int _Factor = 4;
+        private static int _Factor = 16;
 
         //Video information
         public static int VideoWidth { get; set; }
@@ -44,7 +45,7 @@ namespace BadAppleCMD
             Console.CursorVisible = false;
 
             //todo clear this out for release
-            string path = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0-windows10.0.22621.0\\win-x64\\Badapple.mp4";
+            string path = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0-windows10.0.22621.0\\win-x64\\Boob.mp4";
 
             //todo add .jpg option? could we do that in a settings page before we start or pass as arg? Maybe both, just like optional colours
             //todo when no file is dropped, allow to input url?
@@ -122,6 +123,7 @@ namespace BadAppleCMD
             while (_totalframecounter < fCount)
             {
                 Bitmap resizedImage;
+                //todo make sure temp folder is empty before getting new files to prevent exemption here
                 using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png"))
                 {
                     resizedImage = new(image, new Size(image.Width / _Factor, image.Height / _Factor));
@@ -174,7 +176,8 @@ namespace BadAppleCMD
                     //todo calculate how many 0s are needed. bigger videos will require more
                     using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png"))
                     {
-                        Console.Write(ConvertToAscii(image, false));
+                        //Console.Write(ConvertToAscii(image, false));
+                        PrintColourVideo(ConvertToAscii(image, false));
                     }
                     Console.Write(_FPS);
                     File.Delete(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png");
@@ -267,10 +270,8 @@ namespace BadAppleCMD
 
         private static string ConvertToAscii(Bitmap image, Boolean GetColumns)
         {
-            //todo add option for colours. however, black and white should be default. run with args or add settings?
             StringBuilder sb = new();
-            Queue<int> colours = null;
-
+            colours = new();
             int height = 0;
             using (image = new Bitmap(image))
             {
@@ -311,7 +312,6 @@ namespace BadAppleCMD
 
                         if (_Colour)
                         {
-                            colours = new();
                             if (red / 16 is >= 7 and < 14)
                             {
                                 //Gray should be higher up but it isn't in ConsoleColour. So we need to account for everything inbetween
@@ -337,6 +337,24 @@ namespace BadAppleCMD
             _VideoHeightColumns = height;
             sb.Length -= 1; //Last linebreak GONE
             return sb.ToString();
+        }
+
+        private static void PrintColourVideo(string stringtoprint)
+        {
+            //TODO TOO SLOW!!!
+            Char[] array = stringtoprint.ToCharArray();
+            foreach (char c in array)
+            {
+                if (colours.Count > 0)
+                {
+                    Console.ForegroundColor = (ConsoleColor)colours.Dequeue();
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+                Console.Write(c);
+            }
         }
 
         private static void OnTimedEvent(Object source, ElapsedEventArgs e)
