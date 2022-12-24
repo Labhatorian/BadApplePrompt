@@ -12,8 +12,11 @@ namespace BadAppleCMD
     {   //Program
         private static string? strWorkPath = "";
         private static Boolean _Verbose = false;
-        private static Boolean _Colour = true;
-        private static Queue<int> colours = null;
+        private static Boolean _Colour = false;
+        private static Queue<int> colours = new();
+
+        private static int colourcounter;
+        private static Queue<int> colourlister = new();
 
         //Video player
         private static int _framecounter = 0;
@@ -23,7 +26,7 @@ namespace BadAppleCMD
         private static SoundPlayer? audio;
         //TODO Figure out best factors
         //360p -> 4x - 1080p -> 16x
-        private static int _Factor = 16;
+        private static int _Factor = 4;
 
         //Video information
         public static int VideoWidth { get; set; }
@@ -45,9 +48,9 @@ namespace BadAppleCMD
             Console.CursorVisible = false;
 
             //todo clear this out for release
-            string path = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0-windows10.0.22621.0\\win-x64\\Boob.mp4";
+            string path = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0-windows10.0.22621.0\\win-x64\\Badapple.mp4";
 
-            //todo add .jpg option? could we do that in a settings page before we start or pass as arg? Maybe both, just like optional colours
+            //todo add .png option? could we do that in a settings page before we start or pass as arg? Maybe both, just like optional colours
             //todo when no file is dropped, allow to input url?
             if (args.Length != 0)
             {
@@ -176,9 +179,10 @@ namespace BadAppleCMD
                     //todo calculate how many 0s are needed. bigger videos will require more
                     using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png"))
                     {
-                        //Console.Write(ConvertToAscii(image, false));
-                        PrintColourVideo(ConvertToAscii(image, false));
+                        Console.Write(ConvertToAscii(image, false));
+                        //PrintColourVideo(ConvertToAsciiColour(image, false));
                     }
+                    Console.ForegroundColor = ConsoleColor.White;
                     Console.Write(_FPS);
                     File.Delete(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png");
                     Thread.Sleep(VideoFrameRate / (_Factor / 2));
@@ -189,6 +193,7 @@ namespace BadAppleCMD
             }
             Environment.Exit(0);
         }
+
 
 
         //TODO Move this to its own class alongside the full suite of ffmpeg/ffprobe section in the program???
@@ -271,7 +276,6 @@ namespace BadAppleCMD
         private static string ConvertToAscii(Bitmap image, Boolean GetColumns)
         {
             StringBuilder sb = new();
-            colours = new();
             int height = 0;
             using (image = new Bitmap(image))
             {
@@ -292,6 +296,39 @@ namespace BadAppleCMD
                         {
                             sb.Append(' ');
                         }
+                    }
+                    sb.Append('\n');
+                    h++;
+
+                    _VideoWidthColumns = w;
+                    height++;
+                }
+            }
+            _VideoHeightColumns = height;
+            sb.Length -= 1; //Last linebreak GONE
+            return sb.ToString();
+        }
+
+        private static List<string> ConvertToAsciiColour(Bitmap image, Boolean GetColumns)
+        {
+            int height = 0;
+            List<string> fuck = new();
+            colours = new();
+            colourlister = new();
+
+            StringBuilder sb = new();
+            using (image = new Bitmap(image))
+            {
+                for (int h = 0; h < image.Height; h++)
+                {
+                    int w;
+                    int oldred = -1;
+                    for (w = 0; w < image.Width; w++)
+                    {
+                        Color pixelColor = image.GetPixel(w, h);
+
+                        //Average out the RGB components to find the Gray Color
+                        int red = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
 
                         //Black       = 000,000,000-015,015,015 = 0
                         //DarkBlue    = 016,016,016-031,031,031 = 1
@@ -310,8 +347,11 @@ namespace BadAppleCMD
                         //Gray        = 224,224,224-239,239,239 = 7
                         //White       = 240,240,240-255,255,255 = 15
 
-                        if (_Colour)
+                        if (red / 16 != oldred)
                         {
+                            fuck.Add(sb.ToString());
+                            sb = new(); ;
+                            colourlister.Enqueue(colourcounter);
                             if (red / 16 is >= 7 and < 14)
                             {
                                 //Gray should be higher up but it isn't in ConsoleColour. So we need to account for everything inbetween
@@ -325,25 +365,31 @@ namespace BadAppleCMD
                             {
                                 colours.Enqueue(red / 16); //0-6 and 15
                             }
+                            oldred = red / 16;
                         }
+                        sb.Append("█");
                     }
-                    sb.Append('\n');
-                    h++;
+
+                    h++; // So we don't get empty space between every line
+                    if (h! < image.Height)
+                    {
+                        sb.Append("\n");
+                    }
 
                     _VideoWidthColumns = w;
                     height++;
                 }
             }
             _VideoHeightColumns = height;
-            sb.Length -= 1; //Last linebreak GONE
-            return sb.ToString();
+            fuck.RemoveAt(0);
+            return fuck;
         }
 
-        private static void PrintColourVideo(string stringtoprint)
+        private static void PrintColourVideo(List<string> strings)
         {
-            //TODO TOO SLOW!!!
-            Char[] array = stringtoprint.ToCharArray();
-            foreach (char c in array)
+            //UNDONE Too slow, however it is too extreme than it should be. Bottleneck somewhere
+
+            foreach (var item in strings)
             {
                 if (colours.Count > 0)
                 {
@@ -351,10 +397,11 @@ namespace BadAppleCMD
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.ForegroundColor = ConsoleColor.Red;
                 }
-                Console.Write(c);
+                Console.Write(item);
             }
+
         }
 
         private static void OnTimedEvent(Object source, ElapsedEventArgs e)
