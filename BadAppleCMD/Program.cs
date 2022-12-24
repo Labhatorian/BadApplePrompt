@@ -12,11 +12,6 @@ namespace BadAppleCMD
     {   //Program
         private static string? strWorkPath = "";
         private static Boolean _Verbose = false;
-        private static Boolean _Colour = false;
-        private static Queue<int> colours = new();
-
-        private static int colourcounter;
-        private static Queue<int> colourlister = new();
 
         //Video player
         private static int _framecounter = 0;
@@ -180,7 +175,6 @@ namespace BadAppleCMD
                     using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png"))
                     {
                         Console.Write(ConvertToAscii(image, false));
-                        //PrintColourVideo(ConvertToAsciiColour(image, false));
                     }
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write(_FPS);
@@ -193,8 +187,6 @@ namespace BadAppleCMD
             }
             Environment.Exit(0);
         }
-
-
 
         //TODO Move this to its own class alongside the full suite of ffmpeg/ffprobe section in the program???
         private static void Execute(string exePath, string parameters, Boolean getinformation)
@@ -307,101 +299,6 @@ namespace BadAppleCMD
             _VideoHeightColumns = height;
             sb.Length -= 1; //Last linebreak GONE
             return sb.ToString();
-        }
-
-        private static List<string> ConvertToAsciiColour(Bitmap image, Boolean GetColumns)
-        {
-            int height = 0;
-            List<string> fuck = new();
-            colours = new();
-            colourlister = new();
-
-            StringBuilder sb = new();
-            using (image = new Bitmap(image))
-            {
-                for (int h = 0; h < image.Height; h++)
-                {
-                    int w;
-                    int oldred = -1;
-                    for (w = 0; w < image.Width; w++)
-                    {
-                        Color pixelColor = image.GetPixel(w, h);
-
-                        //Average out the RGB components to find the Gray Color
-                        int red = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
-
-                        //Black       = 000,000,000-015,015,015 = 0
-                        //DarkBlue    = 016,016,016-031,031,031 = 1
-                        //DarkGreen   = 032,032,032-047,047,047 = 2
-                        //DarkCyan    = 048,048,048-063,063,063 = 3
-                        //DarkRed     = 064,064,064-079,079,079 = 4
-                        //DarkMagenta = 080,080,080-095,095,095 = 5
-                        //DarkYellow  = 096,096,096-111,111,111 = 6
-                        //DarkGray    = 112,112,112-127,127,127 = 8
-                        //Blue        = 128,128,128-143,143,143 = 9
-                        //Green       = 144,144,144-159,159,159 = 10
-                        //Cyan        = 160,160,160-175,175,175 = 11
-                        //Red         = 176,176,176-191,191,191 = 12
-                        //Magenta     = 192,192,192-207,207,207 = 13
-                        //Yellow      = 208,208,208-223,223,223 = 14
-                        //Gray        = 224,224,224-239,239,239 = 7
-                        //White       = 240,240,240-255,255,255 = 15
-
-                        if (red / 16 != oldred)
-                        {
-                            fuck.Add(sb.ToString());
-                            sb = new(); ;
-                            colourlister.Enqueue(colourcounter);
-                            if (red / 16 is >= 7 and < 14)
-                            {
-                                //Gray should be higher up but it isn't in ConsoleColour. So we need to account for everything inbetween
-                                colours.Enqueue((red / 16) + 1); //7-13
-                            }
-                            else if (red / 16 == 14)
-                            {
-                                colours.Enqueue(7); //Gray 7
-                            }
-                            else
-                            {
-                                colours.Enqueue(red / 16); //0-6 and 15
-                            }
-                            oldred = red / 16;
-                        }
-                        sb.Append("█");
-                    }
-
-                    h++; // So we don't get empty space between every line
-                    if (h! < image.Height)
-                    {
-                        sb.Append("\n");
-                    }
-
-                    _VideoWidthColumns = w;
-                    height++;
-                }
-            }
-            _VideoHeightColumns = height;
-            fuck.RemoveAt(0);
-            return fuck;
-        }
-
-        private static void PrintColourVideo(List<string> strings)
-        {
-            //UNDONE Too slow, however it is too extreme than it should be. Bottleneck somewhere
-
-            foreach (var item in strings)
-            {
-                if (colours.Count > 0)
-                {
-                    Console.ForegroundColor = (ConsoleColor)colours.Dequeue();
-                }
-                else
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                }
-                Console.Write(item);
-            }
-
         }
 
         private static void OnTimedEvent(Object source, ElapsedEventArgs e)
