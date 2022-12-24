@@ -8,12 +8,14 @@ namespace BadAppleCMD
         {
             task = Task.Run(() => { Execute(".\\ffprobe.exe", parameter, true); });
             if (!Program.Verbose) Screens.InformationOrLoadingBar(screenText, screenLoadingBar);
+            task.Wait();
         }
 
         public static void ExecuteFFmpeg(string parameter, out Task task, string screenText, bool screenLoadingBar = false)
         {
             task = Task.Run(() => { Execute(".\\ffmpeg.exe", parameter, true); });
             if (!Program.Verbose) Screens.InformationOrLoadingBar(screenText, screenLoadingBar);
+            task.Wait();
         }
 
         private static void Execute(string exePath, string parameters, bool getinformation)

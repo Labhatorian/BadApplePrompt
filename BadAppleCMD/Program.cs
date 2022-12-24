@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Drawing.Imaging;
 using System.Media;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Timers;
 using Timer = System.Timers.Timer;
@@ -29,12 +30,66 @@ namespace BadAppleCMD
         public static int VideoHeight { get; set; }
         public static int VideoFrameRate { get; set; }
 
+        //Hex values to menubar items
+        private const int MF_BYCOMMAND = 0x00000000;
+        public const int SC_CLOSE = 0xF060;
+        public const int SC_MINIMIZE = 0xF020;
+        public const int SC_MAXIMIZE = 0xF030;
+        public const int SC_SIZE = 0xF000;
+
+        //Values for quick-edit
+        const int STD_INPUT_HANDLE = -10;
+        const int ENABLE_QUICK_EDIT = 0x0040;
+
+        //For disabling console resize
+        [DllImport("user32.dll")]
+        public static extern int DeleteMenu(IntPtr hMenu, int nPosition, int wFlags);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
+
+        [DllImport("kernel32.dll", ExactSpelling = true)]
+        private static extern IntPtr GetConsoleWindow();
+
+        //For disabling quick-edit
+        [DllImport("kernel32.dll")]
+        static extern bool SetConsoleMode(IntPtr hConsoleHandle, int mode);
+
+        [DllImport("kernel32.dll")]
+        static extern bool GetConsoleMode(IntPtr hConsoleHandle, out int mode);
+
+        [DllImport("kernel32.dll")]
+        static extern IntPtr GetStdHandle(int handle);
+
         static void Main(string[] args)
         {
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(ExitApplication);
             Console.SetWindowSize(120, 30);//Default
             Console.SetBufferSize(120, 30);//Default
             Console.CursorVisible = false;
+
+            //Disable resizing the window
+            IntPtr handle = GetConsoleWindow();
+            IntPtr sysMenu = GetSystemMenu(handle, false);
+
+            if (handle != IntPtr.Zero)
+            {
+                DeleteMenu(sysMenu, SC_CLOSE, MF_BYCOMMAND);
+                DeleteMenu(sysMenu, SC_MINIMIZE, MF_BYCOMMAND);
+                DeleteMenu(sysMenu, SC_MAXIMIZE, MF_BYCOMMAND);
+                DeleteMenu(sysMenu, SC_SIZE, MF_BYCOMMAND);
+            }
+
+            //Disable Quick-Edit mode and selecting
+            int mode;
+            handle = GetStdHandle(STD_INPUT_HANDLE);
+
+            if (handle != IntPtr.Zero)
+            {
+                GetConsoleMode(handle, out mode);
+                mode &= ~ENABLE_QUICK_EDIT;
+                SetConsoleMode(handle, mode);
+            }
 
             //todo clear this out for release
             string path = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0-windows10.0.22621.0\\win-x64\\Badapple.mp4";
@@ -74,7 +129,6 @@ namespace BadAppleCMD
             parameter = "-v error -select_streams v:0 -show_entries stream=width,height,avg_frame_rate -of default=nw=1 " + path;
             FFmpeg.ExecuteFFprobe(parameter, out Task task, "Getting information about the video...", true);
             Thread.Sleep(1000);
-            task.Wait();
 
             //Get frames
             parameter = "-i " + path + " " + strWorkPath + "\\temp\\%08d.png";
@@ -82,13 +136,11 @@ namespace BadAppleCMD
             //TODO This does not work correctly on videos that are not bad apple
             //TODO resize as soon as frames get added -> FileSystemWatcher
             FFmpeg.ExecuteFFmpeg(parameter, out task, "Getting every frame from the video...");
-            task.Wait();
 
             //Get audio
             parameter = "-i " + path + " " + strWorkPath + "\\temp\\audio.wav";
             if (File.Exists(strWorkPath + "/temp/audio.wav")) File.Delete(strWorkPath + "/temp/audio.wav"); //Prevents crash
             FFmpeg.ExecuteFFmpeg(parameter, out task, "Getting audio from the video...");
-            task.Wait();
             #endregion
 
             #region Prepare frames and console
@@ -100,10 +152,7 @@ namespace BadAppleCMD
             while (_totalframecounter < fCount)
             {
                 Bitmap resizedImage;
-                using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png"))
-                {
-                    resizedImage = new(image, new Size(image.Width / _Factor, image.Height / _Factor));
-                }
+                using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png")) resizedImage = new(image, new Size(image.Width / _Factor, image.Height / _Factor));
                 resizedImage.Save(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png", ImageFormat.Png);
                 _totalframecounter++;
             }
@@ -115,22 +164,15 @@ namespace BadAppleCMD
                 Console.Write(ConvertToAscii(image));
             }
 
-            if (_VideoWidthColumns > Console.LargestWindowWidth)
-            {
-                _VideoWidthColumns = Console.LargestWindowWidth;
-            }
+            if (_VideoWidthColumns > Console.LargestWindowWidth) _VideoWidthColumns = Console.LargestWindowWidth;
+
             _VideoHeightColumns += 1; //For FPS Counter, and it needs one extra
-            if (_VideoHeightColumns > Console.LargestWindowHeight)
-            {
-                _VideoHeightColumns = Console.LargestWindowHeight;
-            }
+            if (_VideoHeightColumns > Console.LargestWindowHeight) _VideoHeightColumns = Console.LargestWindowHeight;
 
             Console.SetWindowSize(_VideoWidthColumns, _VideoHeightColumns);
             Console.SetBufferSize(_VideoWidthColumns, _VideoHeightColumns);
             Console.BackgroundColor = ConsoleColor.Black;
             Console.Clear();
-
-            //TODO Disable window resizing and window maximising. This has to be done with P/Invoke, Windows DLLs and API
             #endregion
 
             #region Play video
@@ -140,10 +182,7 @@ namespace BadAppleCMD
 
             //Play audio of video
             audio = new SoundPlayer(strWorkPath + "/temp/audio.wav");
-            if (File.Exists(strWorkPath + "/temp/audio.wav"))
-            {
-                audio?.Play();
-            }
+            if (File.Exists(strWorkPath + "/temp/audio.wav")) audio?.Play();
             timer.Start();
 
             //Start playing video
@@ -152,15 +191,13 @@ namespace BadAppleCMD
                 Console.CursorVisible = false; //It likes to turn itself back on
                 if (_framecounter != VideoFrameRate)
                 {
-                    using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png"))
-                    {
-                        Console.Write(ConvertToAscii(image));
-                    }
-                    Console.ForegroundColor = ConsoleColor.White;
+                    using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png")) Console.Write(ConvertToAscii(image));
+
                     Console.Write(_FPS);
                     File.Delete(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png");
                     Thread.Sleep(VideoFrameRate / (_Factor / 2));
                     Console.SetCursorPosition(0, 0);
+
                     _framecounter++;
                     _totalframecounter++;
                 }
@@ -185,14 +222,8 @@ namespace BadAppleCMD
                         //Average out the RGB components to find the Gray Color
                         int red = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
                         //Testing has resulted in 15 being the best value for BW videos
-                        if (red > 15)
-                        {
-                            sb.Append('█');
-                        }
-                        else
-                        {
-                            sb.Append(' ');
-                        }
+                        if (red > 15) sb.Append('█');
+                        else sb.Append(' ');
                     }
                     sb.Append('\n');
                     h++;
@@ -202,21 +233,15 @@ namespace BadAppleCMD
                 }
             }
             _VideoHeightColumns = height;
-            sb.Length -= 1; //Last linebreak GONE
+            sb.Length -= 1; //Last linebreak GONE so everything fits correctly in the window
             return sb.ToString();
         }
 
         private static void OnTimedEvent(Object source, ElapsedEventArgs e)
         {
             _FPS = $"FPS: {_framecounter}";
-            if (_framecounter < VideoFrameRate && !_Desync)
-            {
-                _Desync = true;
-            }
-            else if (_Desync)
-            {
-                _FPS += " - Video desynced!";
-            }
+            if (_framecounter < VideoFrameRate && !_Desync) _Desync = true;
+            else if (_Desync) _FPS += " - Video desynced!";
             _framecounter = 0;
         }
 
