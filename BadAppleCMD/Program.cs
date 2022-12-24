@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Imaging;
 using System.Media;
 using System.Text;
@@ -11,13 +10,15 @@ namespace BadAppleCMD
     public class Program
     {   //Program
         private static string? strWorkPath = "";
-        private static Boolean _Verbose = false;
+        public static bool Verbose = true;
 
         //Video player
+        private static int _VideoWidthColumns = 0;
+        private static int _VideoHeightColumns = 0;
         private static int _framecounter = 0;
         private static int _totalframecounter = 1;
         private static string _FPS = "FPS: 0";
-        private static Boolean _Desync = false;
+        private static bool _Desync = false;
         private static SoundPlayer? audio;
         //TODO Figure out best factors
         //360p -> 4x - 1080p -> 16x
@@ -28,25 +29,17 @@ namespace BadAppleCMD
         public static int VideoHeight { get; set; }
         public static int VideoFrameRate { get; set; }
 
-        private static int _VideoWidthColumns = 0;
-        private static int _VideoHeightColumns = 0;
-
         static void Main(string[] args)
         {
-            //TODO Make use of sections
-            //TODO Write comments
-            //TODO Write summaries
-            //TODO Write tests in a testproject???
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(ExitApplication);
-            Console.SetWindowSize(120, 30);///Default
+            Console.SetWindowSize(120, 30);//Default
             Console.SetBufferSize(120, 30);//Default
             Console.CursorVisible = false;
 
             //todo clear this out for release
             string path = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0-windows10.0.22621.0\\win-x64\\Badapple.mp4";
 
-            //todo add .png option? could we do that in a settings page before we start or pass as arg? Maybe both, just like optional colours
-            //todo when no file is dropped, allow to input url?
+            //todo add png option
             if (args.Length != 0)
             {
                 path = Path.GetDirectoryName(args[0])
@@ -65,83 +58,68 @@ namespace BadAppleCMD
             strWorkPath = Path.GetDirectoryName(AppContext.BaseDirectory);
 
             //Make temp hidden folder. ffmpeg can not create one on its for some reason
+            DeleteTemp();
             DirectoryInfo di = Directory.CreateDirectory(strWorkPath + "/temp");
             di.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
 
             //Show video that will get played
-            //TODO Only show filename? Maybe get metadata
             Screens.WriteScreen(ConsoleColor.DarkBlue, "Now Playing", path);
             Thread.Sleep(2000);
-
-            //TODO Make these ffmpeg functions their own function to remove the clutter in this part of the code
-            //Get information about video
             Console.Clear();
-            string parameter = "-v error -select_streams v:0 -show_entries stream=width,height,avg_frame_rate -of default=nw=1 " + path;
-            Task task = Task.Run(() => { Execute(".\\ffprobe.exe", parameter, true); });
-            if (!_Verbose)
-            {
-                Screens.InformationOrLoadingBar("Getting information about the video...", true);
-            }
+
+            #region FFmpeg
+            string parameter;
+
+            //Get information about video
+            parameter = "-v error -select_streams v:0 -show_entries stream=width,height,avg_frame_rate -of default=nw=1 " + path;
+            FFmpeg.ExecuteFFprobe(parameter, out Task task, "Getting information about the video...", true);
             Thread.Sleep(1000);
             task.Wait();
 
-            parameter = "-i " + path + " " + strWorkPath + "/temp/%04d.png";
-            parameter = parameter.Replace("\\", "/");
+            //Get frames
+            parameter = "-i " + path + " " + strWorkPath + "\\temp\\%08d.png";
             Console.CursorVisible = false;
-            task = Task.Run(() => { Execute(".\\ffmpeg.exe", parameter, true); });
             //TODO This does not work correctly on videos that are not bad apple
             //TODO resize as soon as frames get added -> FileSystemWatcher
-            if (!_Verbose)
-            {
-                Screens.InformationOrLoadingBar("Getting every frame from the video...", false);
-            }
+            FFmpeg.ExecuteFFmpeg(parameter, out task, "Getting every frame from the video...");
             task.Wait();
 
-            parameter = "-i " + path + " " + strWorkPath + "/temp/audio.wav";
-            parameter = parameter.Replace("\\", "/");
-
-            //Get audio - ffmpeg cries when a file already exists, unlike with images
-            if (File.Exists(strWorkPath + "/temp/audio.wav"))
-            {
-                File.Delete(strWorkPath + "/temp/audio.wav");
-            }
-            task = Task.Run(() => { Execute(".\\ffmpeg.exe", parameter, false); });
-            if (!_Verbose)
-            {
-                Screens.InformationOrLoadingBar("Getting audio from the video...", false);
-            }
+            //Get audio
+            parameter = "-i " + path + " " + strWorkPath + "\\temp\\audio.wav";
+            if (File.Exists(strWorkPath + "/temp/audio.wav")) File.Delete(strWorkPath + "/temp/audio.wav"); //Prevents crash
+            FFmpeg.ExecuteFFmpeg(parameter, out task, "Getting audio from the video...");
             task.Wait();
+            #endregion
 
-
-
+            #region Prepare frames and console
             int fCount = Directory.GetFiles(strWorkPath + "/temp", "*", SearchOption.TopDirectoryOnly).Length;
 
-            //UNDONE Resize every image to its factor -> Will get removed later
+            //UNDONE Resize every image to its factor -> Will get removed later as it's probably slower
             Screens.WriteScreen(ConsoleColor.DarkBlue, "Resizing frames", "[LoadingBar - Work In Progress]");
+
             while (_totalframecounter < fCount)
             {
                 Bitmap resizedImage;
-                //todo make sure temp folder is empty before getting new files to prevent exemption here
-                using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png"))
+                using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png"))
                 {
                     resizedImage = new(image, new Size(image.Width / _Factor, image.Height / _Factor));
                 }
-                resizedImage.Save(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png", ImageFormat.Png);
+                resizedImage.Save(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png", ImageFormat.Png);
                 _totalframecounter++;
             }
             _totalframecounter = 1;
 
             //Get the right window sizes. Max is dependent on user screen resolution.
-            using (Bitmap image = new(strWorkPath + $"\\temp\\{1:0000}.png"))
+            using (Bitmap image = new(strWorkPath + $"\\temp\\{1:00000000}.png"))
             {
-                Console.Write(ConvertToAscii(image, true));
+                Console.Write(ConvertToAscii(image));
             }
 
             if (_VideoWidthColumns > Console.LargestWindowWidth)
             {
                 _VideoWidthColumns = Console.LargestWindowWidth;
             }
-            _VideoHeightColumns += 1; //For FPS Counter, and it needs one ex
+            _VideoHeightColumns += 1; //For FPS Counter, and it needs one extra
             if (_VideoHeightColumns > Console.LargestWindowHeight)
             {
                 _VideoHeightColumns = Console.LargestWindowHeight;
@@ -153,7 +131,9 @@ namespace BadAppleCMD
             Console.Clear();
 
             //TODO Disable window resizing and window maximising. This has to be done with P/Invoke, Windows DLLs and API
+            #endregion
 
+            #region Play video
             //FPS counter timer and event
             Timer timer = new(1000);
             timer.Elapsed += OnTimedEvent;
@@ -166,106 +146,31 @@ namespace BadAppleCMD
             }
             timer.Start();
 
+            //Start playing video
             while (_totalframecounter < fCount)
             {
                 Console.CursorVisible = false; //It likes to turn itself back on
                 if (_framecounter != VideoFrameRate)
                 {
-                    //todo calculate how many 0s are needed. bigger videos will require more
-                    using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png"))
+                    using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png"))
                     {
-                        Console.Write(ConvertToAscii(image, false));
+                        Console.Write(ConvertToAscii(image));
                     }
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.Write(_FPS);
-                    File.Delete(strWorkPath + $"\\temp\\{_totalframecounter:0000}.png");
+                    File.Delete(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png");
                     Thread.Sleep(VideoFrameRate / (_Factor / 2));
                     Console.SetCursorPosition(0, 0);
                     _framecounter++;
                     _totalframecounter++;
                 }
             }
+            #endregion
+
             Environment.Exit(0);
         }
 
-        //TODO Move this to its own class alongside the full suite of ffmpeg/ffprobe section in the program???
-        private static void Execute(string exePath, string parameters, Boolean getinformation)
-        {
-            string result = String.Empty;
-            Screens.LoadingFinished = false;
-
-            using Process p = new();
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.RedirectStandardError = true;
-            p.StartInfo.FileName = exePath;
-            p.StartInfo.Arguments = parameters;
-            //TODO Test different videos with different codes, resolutions, framerate, as testing resulted in a different video not getting right values for Time= and Duration=
-            //For ffprobe
-            p.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
-            {
-                if (_Verbose)
-                {
-                    Console.WriteLine(e.Data);
-                }
-                if (e.Data is not null)
-                {
-                    if (exePath.Contains("ffprobe.exe") && getinformation)
-                    {
-                        if (e.Data.Contains("width="))
-                        {
-                            VideoWidth = int.Parse(e.Data[(e.Data.LastIndexOf("width=") + 6)..]);
-                        }
-
-                        if (e.Data.Contains("height="))
-                        {
-                            VideoHeight = int.Parse(e.Data[(e.Data.LastIndexOf("height=") + 7)..]);
-                        }
-
-                        if (e.Data.Contains("avg_frame_rate="))
-                        {
-                            string frameratefraction = e.Data[(e.Data.LastIndexOf("avg_frame_rate=") + 15)..];
-                            int valueOne = int.Parse(frameratefraction.Split('/')[0]);
-                            int valueTwo = int.Parse(frameratefraction[(frameratefraction.LastIndexOf('/') + 1)..]);
-                            VideoFrameRate = valueOne / valueTwo;
-                        }
-                    }
-                }
-            });
-
-            //For ffmpeg
-            p.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
-            {
-                if (_Verbose)
-                {
-                    Console.WriteLine(e.Data);
-                }
-                if (e.Data is not null)
-                {
-                    if (exePath.Contains("ffmpeg.exe"))
-                    {
-                        if (e.Data.Contains("Duration:") && getinformation)
-                        {
-                            Screens.TotalDuration = e.Data.Substring(e.Data.LastIndexOf("Duration:") + 10, e.Data.LastIndexOf("Duration:") + 9);
-                        }
-                        if (e.Data.Contains("time="))
-                        {
-                            Screens.CurrentDuration = e.Data.Substring(e.Data.LastIndexOf("time=") + 5, e.Data.LastIndexOf("time=:") + 12);
-                        }
-                    }
-
-                }
-            });
-
-            p.Start();
-            p.BeginOutputReadLine();
-            p.BeginErrorReadLine();
-            p.WaitForExit();
-            Screens.LoadingFinished = true;
-        }
-
-        private static string ConvertToAscii(Bitmap image, Boolean GetColumns)
+        private static string ConvertToAscii(Bitmap image)
         {
             StringBuilder sb = new();
             int height = 0;
@@ -317,7 +222,6 @@ namespace BadAppleCMD
 
         static void ExitApplication(object sender, EventArgs e)
         {
-            //todo test every case
             audio?.Stop();
             _totalframecounter = 999999999;
             GC.Collect();
@@ -327,8 +231,11 @@ namespace BadAppleCMD
             Thread.Sleep(500);
 
             GC.WaitForPendingFinalizers();
+            DeleteTemp();
+        }
 
-            //Delete temp folder
+        private static void DeleteTemp()
+        {
             if (Directory.Exists(strWorkPath + "/temp"))
             {
                 try
