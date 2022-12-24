@@ -7,7 +7,7 @@ namespace BadAppleCMD
     {
         public static string? TotalDuration { get; set; }
         public static string? CurrentDuration { get; set; }
-        public static Boolean LoadingFinished { get; set; }
+        public static bool LoadingFinished { get; set; }
 
         public static void WriteScreen(ConsoleColor BackgroundColour, string MainString, string SecondString)
         {
@@ -19,7 +19,7 @@ namespace BadAppleCMD
             Console.WriteLine(SecondString);
         }
 
-        public static void InformationOrLoadingBar(string MainString, Boolean Information)
+        public static void InformationOrLoadingBar(string MainString, bool Information)
         {
             //todo add additional option to display a third line??? (For what again?)
             //todo Use WriteScreen() to save code
