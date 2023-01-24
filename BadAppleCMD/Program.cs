@@ -11,7 +11,7 @@ namespace BadAppleCMD
     public class Program
     {   //Program
         private static string? strWorkPath = "";
-        public static bool Verbose = true;
+        public static bool Verbose = false;
 
         //Video player
         private static int _VideoWidthColumns = 0;
@@ -30,8 +30,13 @@ namespace BadAppleCMD
         public static int VideoHeight { get; set; }
         public static int VideoFrameRate { get; set; }
 
-        //Hex values to menubar items
+        //Hex values for different options
         private const int MF_BYCOMMAND = 0x00000000;
+        private const int MF_ENABLED = 0x0;
+        private const int MF_GRAYED = 0x1;
+        private const int MF_DISABLED = 0x2;
+
+        //Values for window
         public const int SC_CLOSE = 0xF060;
         public const int SC_MINIMIZE = 0xF020;
         public const int SC_MAXIMIZE = 0xF030;
@@ -41,9 +46,13 @@ namespace BadAppleCMD
         const int STD_INPUT_HANDLE = -10;
         const int ENABLE_QUICK_EDIT = 0x0040;
 
+        //TODO DISABLE NOT DELETE
         //For disabling console resize
         [DllImport("user32.dll")]
-        public static extern int DeleteMenu(IntPtr hMenu, int nPosition, int wFlags);
+        static extern bool EnableMenuItem(IntPtr hMenu, uint uIDEnableItem, uint uEnable);
+
+        [DllImport("user32.dll")]
+        static extern bool DrawMenuBar(IntPtr hWnd);
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
@@ -74,15 +83,15 @@ namespace BadAppleCMD
 
             if (handle != IntPtr.Zero)
             {
-                DeleteMenu(sysMenu, SC_CLOSE, MF_BYCOMMAND);
-                DeleteMenu(sysMenu, SC_MINIMIZE, MF_BYCOMMAND);
-                DeleteMenu(sysMenu, SC_MAXIMIZE, MF_BYCOMMAND);
-                DeleteMenu(sysMenu, SC_SIZE, MF_BYCOMMAND);
+                EnableMenuItem(sysMenu, SC_CLOSE, MF_BYCOMMAND | MF_GRAYED);
+                EnableMenuItem(sysMenu, SC_MAXIMIZE, MF_BYCOMMAND | MF_GRAYED);
+                EnableMenuItem(sysMenu, SC_MINIMIZE, MF_BYCOMMAND | MF_GRAYED);
+                EnableMenuItem(sysMenu, SC_SIZE, MF_BYCOMMAND | MF_DISABLED);
             }
 
             //Disable Quick-Edit mode and selecting
             int mode;
-            handle = GetStdHandle(STD_INPUT_HANDLE);
+            //handle = GetStdHandle(STD_INPUT_HANDLE);
 
             if (handle != IntPtr.Zero)
             {
@@ -180,6 +189,9 @@ namespace BadAppleCMD
             Timer timer = new(1000);
             timer.Elapsed += OnTimedEvent;
 
+            //Enable closing again
+            EnableMenuItem(sysMenu, SC_CLOSE, MF_BYCOMMAND | MF_ENABLED);
+
             //Play audio of video
             audio = new SoundPlayer(strWorkPath + "/temp/audio.wav");
             if (File.Exists(strWorkPath + "/temp/audio.wav")) audio?.Play();
@@ -188,11 +200,11 @@ namespace BadAppleCMD
             //Start playing video
             while (_totalframecounter < fCount)
             {
+                Console.BackgroundColor = ConsoleColor.Black;
                 Console.CursorVisible = false; //It likes to turn itself back on
                 if (_framecounter != VideoFrameRate)
                 {
                     using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png")) Console.Write(ConvertToAscii(image));
-
                     Console.Write(_FPS);
                     File.Delete(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png");
                     Thread.Sleep(VideoFrameRate / (_Factor / 2));
