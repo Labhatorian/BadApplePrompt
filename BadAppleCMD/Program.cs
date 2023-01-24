@@ -13,6 +13,8 @@ namespace BadAppleCMD
         private static string? strWorkPath = "";
         public static bool Verbose = false;
 
+        private static string testimg;
+
         //Video player
         private static int _VideoWidthColumns = 0;
         private static int _VideoHeightColumns = 0;
@@ -170,7 +172,8 @@ namespace BadAppleCMD
             //Get the right window sizes. Max is dependent on user screen resolution.
             using (Bitmap image = new(strWorkPath + $"\\temp\\{1:00000000}.png"))
             {
-                Console.Write(ConvertToAscii(image));
+                testimg = ConvertToAscii(image);
+                Console.Write(testimg);
             }
 
             if (_VideoWidthColumns > Console.LargestWindowWidth) _VideoWidthColumns = Console.LargestWindowWidth;
@@ -204,8 +207,9 @@ namespace BadAppleCMD
                 Console.CursorVisible = false; //It likes to turn itself back on
                 if (_framecounter != VideoFrameRate)
                 {
-                    using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png")) Console.Write(ConvertToAscii(image));
-                    Console.Write(_FPS);
+                    Console.Write(testimg);
+                    //Console.Write(_FPS);
+                    using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png")) testimg = ConvertToAscii(image);
                     File.Delete(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png");
                     Thread.Sleep(VideoFrameRate / (_Factor / 2));
                     Console.SetCursorPosition(0, 0);
@@ -245,7 +249,8 @@ namespace BadAppleCMD
                 }
             }
             _VideoHeightColumns = height;
-            sb.Length -= 1; //Last linebreak GONE so everything fits correctly in the window
+            //sb.Length -= 1; //Remove last linebreak
+            //sb.Append(_FPS);
             return sb.ToString();
         }
 
