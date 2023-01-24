@@ -170,6 +170,7 @@ namespace BadAppleCMD
             _totalframecounter = 1;
 
             //Get the right window sizes. Max is dependent on user screen resolution.
+            //TODO what?
             using (Bitmap image = new(strWorkPath + $"\\temp\\{1:00000000}.png"))
             {
                 testimg = ConvertToAscii(image);
@@ -211,7 +212,7 @@ namespace BadAppleCMD
                     //Console.Write(_FPS);
                     using (Bitmap image = new(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png")) testimg = ConvertToAscii(image);
                     File.Delete(strWorkPath + $"\\temp\\{_totalframecounter:00000000}.png");
-                    Thread.Sleep(VideoFrameRate / (_Factor / 2));
+                    Thread.Sleep(VideoFrameRate / 2);
                     Console.SetCursorPosition(0, 0);
 
                     _framecounter++;
@@ -250,7 +251,11 @@ namespace BadAppleCMD
             }
             _VideoHeightColumns = height;
             //sb.Length -= 1; //Remove last linebreak
-            //sb.Append(_FPS);
+            sb.Append(_FPS);
+            for (int i = _VideoWidthColumns - _FPS.Length; i > 0; i--)
+            {
+                sb.Append(' ');
+            }
             return sb.ToString();
         }
 
