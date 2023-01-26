@@ -1,4 +1,7 @@
-﻿namespace BadAppleCMD
+﻿using BadAppleCMD.Logic;
+using BadAppleCMD.Screens;
+
+namespace BadAppleCMD
 {
     public class Program
     {
@@ -23,7 +26,7 @@
             Thread.Sleep(2000);
             Console.Clear();
 
-            FFmpegExecution.GetVideoInformation();
+            FFmpegExecution.GetVideoInformation(FilePath);
             FFmpegExecution.GetVideoFrames(FilePath, WorkPath);
             FFmpegExecution.GetAudio(FilePath, WorkPath);
 
@@ -69,8 +72,8 @@
 
         static void ExitApplication(object sender, EventArgs e)
         {
-            VideoPlayer.audio?.Stop();
-            VideoPlayer._totalframecounter = 999999999;
+            VideoPlayer.Audio?.Stop();
+            VideoPlayer.TotalFrameCounter = 2147483647;
             GC.Collect();
 
             Thread.Sleep(500);

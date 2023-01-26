@@ -1,4 +1,4 @@
-﻿namespace BadAppleCMD
+﻿namespace BadAppleCMD.Screens
 {
     internal class Settings
     {

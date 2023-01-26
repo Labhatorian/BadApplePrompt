@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Text;
 
-namespace BadAppleCMD
+namespace BadAppleCMD.Screens
 {
     public static class LoadingScreens
     {
@@ -65,14 +65,14 @@ namespace BadAppleCMD
                                            CultureInfo.InvariantCulture);
                     currentdurationseconds = currentdurationTime.Hour * 60 * 60 + currentdurationTime.Minute * 60 + currentdurationTime.Second + currentdurationTime.Millisecond / 100;
                 }
-                catch (System.FormatException)
+                catch (FormatException)
                 {
                     //ffmpeg hasnt started working on the video yet, ignore
                 }
             }
 
             //TODO Are we sure this is right?
-            int totalBars = (int)Math.Ceiling((double)(((double)currentdurationseconds / (double)totaldurationseconds * (double)100) / (double)5));
+            int totalBars = (int)Math.Ceiling((double)(currentdurationseconds / (double)totaldurationseconds * 100 / 5));
 
             for (int i = 1; i <= 20; i++)
             {
