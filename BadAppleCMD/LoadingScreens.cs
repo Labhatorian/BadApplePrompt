@@ -3,7 +3,7 @@ using System.Text;
 
 namespace BadAppleCMD
 {
-    public static class Screens
+    public static class LoadingScreens
     {
         public static string? TotalDuration { get; set; }
         public static string? CurrentDuration { get; set; }
