@@ -2,23 +2,46 @@
 
 namespace BadAppleCMD
 {
-    public static class FFmpeg
+    public class FFmpeg
     {
-        public static void ExecuteFFprobe(string parameter, out Task task, string screenText, bool screenLoadingBar = false)
+        public void GetVideoInformation()
         {
-            task = Task.Run(() => { Execute(".\\ffprobe.exe", parameter, true); });
+            string parameter = "-v error -select_streams v:0 -show_entries stream=width,height,avg_frame_rate -of default=nw=1 " + path;
+            ExecuteFFprobe(parameter, "Getting information about the video...", true);
+            Thread.Sleep(1000);
+        }
+
+        public void GetVideoFrames(string FilePath, string WorkingPath)
+        {
+            string parameter = "-i " + FilePath + " " + WorkingPath + "\\temp\\%08d.png";
+            Console.CursorVisible = false;
+            //TODO This does not work correctly on videos that are not bad apple
+            //TODO resize as soon as frames get added -> FileSystemWatcher?
+            ExecuteFFmpeg(parameter, "Getting every frame from the video...");
+        }
+
+        public void GetAudio(string FilePath, string WorkingPath)
+        {
+            string parameter = "-i " + FilePath + " " + WorkingPath + "\\temp\\audio.wav";
+            if (File.Exists(WorkingPath + "/temp/audio.wav")) File.Delete(WorkingPath + "/temp/audio.wav"); //Prevents crash
+            ExecuteFFmpeg(parameter, "Getting audio from the video...");
+        }
+
+        private void ExecuteFFprobe(string parameter, string screenText, bool screenLoadingBar = false)
+        {
+            Task task = Task.Run(() => { Execute(".\\ffprobe.exe", parameter, true); });
             if (!Program.Verbose) Screens.InformationOrLoadingBar(screenText, screenLoadingBar);
             task.Wait();
         }
 
-        public static void ExecuteFFmpeg(string parameter, out Task task, string screenText, bool screenLoadingBar = false)
+        private void ExecuteFFmpeg(string parameter, string screenText, bool screenLoadingBar = false)
         {
-            task = Task.Run(() => { Execute(".\\ffmpeg.exe", parameter, true); });
+            Task task = Task.Run(() => { Execute(".\\ffmpeg.exe", parameter, true); });
             if (!Program.Verbose) Screens.InformationOrLoadingBar(screenText, screenLoadingBar);
             task.Wait();
         }
 
-        private static void Execute(string exePath, string parameters, bool getinformation)
+        private void Execute(string exePath, string parameters, bool getinformation)
         {
             string result = String.Empty;
             Screens.LoadingFinished = false;
