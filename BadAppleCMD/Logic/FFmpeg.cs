@@ -1,12 +1,13 @@
-﻿using System.Diagnostics;
+﻿using BadAppleCMD.Screens;
+using System.Diagnostics;
 
-namespace BadAppleCMD
+namespace BadAppleCMD.Logic
 {
     public class FFmpeg
     {
-        public void GetVideoInformation()
+        public void GetVideoInformation(string FilePath)
         {
-            string parameter = "-v error -select_streams v:0 -show_entries stream=width,height,avg_frame_rate -of default=nw=1 " + path;
+            string parameter = "-v error -select_streams v:0 -show_entries stream=width,height,avg_frame_rate -of default=nw=1 " + FilePath;
             ExecuteFFprobe(parameter, "Getting information about the video...", true);
             Thread.Sleep(1000);
         }
@@ -22,29 +23,35 @@ namespace BadAppleCMD
 
         public void GetAudio(string FilePath, string WorkingPath)
         {
-            string parameter = "-i " + FilePath + " " + WorkingPath + "\\temp\\audio.wav";
-            if (File.Exists(WorkingPath + "/temp/audio.wav")) File.Delete(WorkingPath + "/temp/audio.wav"); //Prevents crash
-            ExecuteFFmpeg(parameter, "Getting audio from the video...");
+            string parameter = "-i " + FilePath + " " + WorkingPath + "\\temp\\Audio.wav";
+            if (File.Exists(WorkingPath + "/temp/Audio.wav")) File.Delete(WorkingPath + "/temp/Audio.wav"); //Prevents crash
+            ExecuteFFmpeg(parameter, "Getting Audio from the video...");
         }
 
         private void ExecuteFFprobe(string parameter, string screenText, bool screenLoadingBar = false)
         {
             Task task = Task.Run(() => { Execute(".\\ffprobe.exe", parameter, true); });
-            if (!Program.Verbose) Screens.InformationOrLoadingBar(screenText, screenLoadingBar);
+            if (!Program.Verbose) LoadingScreens.InformationOrLoadingBar(screenText, screenLoadingBar);
             task.Wait();
         }
 
         private void ExecuteFFmpeg(string parameter, string screenText, bool screenLoadingBar = false)
         {
             Task task = Task.Run(() => { Execute(".\\ffmpeg.exe", parameter, true); });
-            if (!Program.Verbose) Screens.InformationOrLoadingBar(screenText, screenLoadingBar);
+            if (!Program.Verbose) LoadingScreens.InformationOrLoadingBar(screenText, screenLoadingBar);
             task.Wait();
         }
 
+        /// <summary>
+        /// <paramref name="getinformation"/> is used to not attempt to read lines that are not needed for getting audio
+        /// </summary>
+        /// <param name="exePath"></param>
+        /// <param name="parameters"></param>
+        /// <param name="getinformation"></param>
         private void Execute(string exePath, string parameters, bool getinformation)
         {
-            string result = String.Empty;
-            Screens.LoadingFinished = false;
+            string result = string.Empty;
+            LoadingScreens.LoadingFinished = false;
 
             using Process p = new();
             p.StartInfo.UseShellExecute = false;
@@ -99,11 +106,11 @@ namespace BadAppleCMD
                     {
                         if (e.Data.Contains("Duration:") && getinformation)
                         {
-                            Screens.TotalDuration = e.Data.Substring(e.Data.LastIndexOf("Duration:") + 10, e.Data.LastIndexOf("Duration:") + 9);
+                            LoadingScreens.TotalDuration = e.Data.Substring(e.Data.LastIndexOf("Duration:") + 10, e.Data.LastIndexOf("Duration:") + 9);
                         }
                         if (e.Data.Contains("time="))
                         {
-                            Screens.CurrentDuration = e.Data.Substring(e.Data.LastIndexOf("time=") + 5, e.Data.LastIndexOf("time=:") + 12);
+                            LoadingScreens.CurrentDuration = e.Data.Substring(e.Data.LastIndexOf("time=") + 5, e.Data.LastIndexOf("time=:") + 12);
                         }
                     }
 
@@ -114,7 +121,7 @@ namespace BadAppleCMD
             p.BeginOutputReadLine();
             p.BeginErrorReadLine();
             p.WaitForExit();
-            Screens.LoadingFinished = true;
+            LoadingScreens.LoadingFinished = true;
         }
     }
 }
