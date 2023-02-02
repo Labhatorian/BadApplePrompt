@@ -79,7 +79,7 @@ namespace BadAppleCMD.Logic
             while (TotalFrameCounter < TotalFileCount)
             {
                 Bitmap resizedImage;
-                using (Bitmap image = new(WorkingPath + $"\\temp\\{TotalFrameCounter:00000000}.png")) resizedImage = new(image, new Size(image.Width / ResizeFactor, image.Height / ResizeFactor));
+                using (Bitmap image = new(WorkingPath + $"\\temp\\{TotalFrameCounter:00000000}." + Program.FrameFileExtension)) resizedImage = new(image, new Size(image.Width / ResizeFactor, image.Height / ResizeFactor));
                 resizedImage.Save(WorkingPath + $"\\temp\\{TotalFrameCounter:00000000}.png", ImageFormat.Png);
                 TotalFrameCounter++;
             }
