@@ -7,10 +7,12 @@ namespace BadAppleCMD
         private static PlatformInvoke PInvoke = new();
         private static FFmpeg FFmpegExecution = new();
         private static Videoplayer VideoPlayer = new();
+
+        private static Menu MainMenu = new();
         //todo clear this out for release
         private static string FilePath = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0-windows10.0.22621.0\\win-x64\\Badapple.mp4";
         private static string WorkPath = "";
-        private static string FrameFileExtension = "JPEG";
+        public static string FrameFileExtension = "JPEG";
         public static bool Verbose = false;
         public static bool AutoStart = false;
 
@@ -26,25 +28,39 @@ namespace BadAppleCMD
 
             if (AutoStart)
             {
-                LoadingScreens.WriteScreen(ConsoleColor.DarkBlue, "Now Playing", FilePath);
-                Thread.Sleep(2000);
-                Console.Clear();
-
-                FFmpegExecution.GetVideoInformation(FilePath);
-                FFmpegExecution.GetVideoFrames(FilePath, WorkPath, FrameFileExtension);
-                FFmpegExecution.GetAudio(FilePath, WorkPath);
-
-                VideoPlayer.ResizeFrames(WorkPath);
-                VideoPlayer.PrepareConsole(WorkPath);
-                PInvoke.EnableCloseButton();
-                VideoPlayer.PlayVideo(WorkPath);
-
-                Environment.Exit(0);
+                MakeAndPlayVideo();
             }
             else
             {
-                //open menu
+                int SelectedOption = MainMenu.MainMenu();
+                if (SelectedOption == 0)
+                {
+                    MakeAndPlayVideo();
+                }
+                else
+                {
+                    // open settings
+                }
             }
+        }
+
+        private static void MakeAndPlayVideo()
+        {
+            PInvoke.PrepareConsole();
+            LoadingScreens.WriteScreen(ConsoleColor.DarkBlue, "Now Playing", FilePath);
+            Thread.Sleep(2000);
+            Console.Clear();
+
+            FFmpegExecution.GetVideoInformation(FilePath);
+            FFmpegExecution.GetVideoFrames(FilePath, WorkPath, FrameFileExtension);
+            FFmpegExecution.GetAudio(FilePath, WorkPath);
+
+            VideoPlayer.ResizeFrames(WorkPath);
+            VideoPlayer.PrepareConsole(WorkPath);
+            PInvoke.EnableCloseButton();
+            VideoPlayer.PlayVideo(WorkPath);
+
+            Environment.Exit(0);
         }
 
         private static void Initialise(string[] args)
@@ -88,13 +104,11 @@ namespace BadAppleCMD
             else
             {
                 LoadingScreens.WriteScreen(ConsoleColor.DarkRed, "No file has been provided", "Select a videofile or quit");
-                FilePath = SelectFileDialog();
-                if (FilePath is null) Environment.Exit(0);
+                //FilePath = SelectFileDialog();
+                //if (FilePath is null) Environment.Exit(0);
             }
 
             //TODO filepath check
-
-            PInvoke.PrepareConsole();
 
             //Make hidden temp folder. ffmpeg can not create one
             DeleteTemp();
