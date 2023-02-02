@@ -1,6 +1,5 @@
 ﻿using BadAppleCMD.Logic;
 using BadAppleCMD.Screens;
-
 namespace BadAppleCMD
 {
     public class Program
@@ -11,6 +10,7 @@ namespace BadAppleCMD
         //todo clear this out for release
         private static string FilePath = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0-windows10.0.22621.0\\win-x64\\Badapple.mp4";
         private static string WorkPath = "";
+        private static string FrameFileExtension = "JPEG";
         public static bool Verbose = false;
 
         public static int VideoWidth { get; set; }
@@ -18,6 +18,7 @@ namespace BadAppleCMD
         public static int VideoFrameRate { get; set; }
         public static int TotalVideoFrames { get; set; } //TODO use ffprobe to get max amount of frames
 
+        [STAThread]
         static void Main(string[] args)
         {
             Initialise(args);
@@ -44,30 +45,68 @@ namespace BadAppleCMD
             Console.SetWindowSize(120, 30);//Default
             Console.SetBufferSize(120, 30);//Default
             Console.CursorVisible = false;
+            WorkPath = Path.GetDirectoryName(AppContext.BaseDirectory);
 
-            //todo add png option for running in cmd
             if (args.Length != 0)
             {
-                FilePath = Path.GetDirectoryName(args[0])
-                   + Path.DirectorySeparatorChar
-                   + Path.GetFileNameWithoutExtension(args[0])
-                   + Path.GetExtension(args[0]);
+                //todo checks
+                for (int i = 0; i < args.Length; i++)
+                {
+                    string argument = args[i];
+
+                    if (argument.Equals("-FileExtension"))
+                    {
+                        FrameFileExtension = args[i + 1];
+                    }
+                    if (argument.Equals("-Factor"))
+                    {
+                        VideoPlayer.ResizeFactor = int.Parse(args[i + 1]);
+                    }
+                    if (argument.Equals("-Verbose"))
+                    {
+                        Verbose = true;
+                    }
+                }
+
+                FilePath = Path.GetDirectoryName(args[args.Length - 1])
+                    + Path.DirectorySeparatorChar
+                    + Path.GetFileNameWithoutExtension(args[args.Length - 1])
+                    + Path.GetExtension(args[args.Length - 1]);
             }
             else
             {
-                //todo clear this out for release
-                LoadingScreens.WriteScreen(ConsoleColor.DarkRed, "No file has been provided", "Drag and drop a video on the executable. The program will close in 5 seconds.");
-                //Thread.Sleep(5000);
-                //Environment.Exit(0);
+                LoadingScreens.WriteScreen(ConsoleColor.DarkRed, "No file has been provided", "Select a videofile or quit");
+                FilePath = SelectFileDialog();
+
+                if (FilePath is null) Environment.Exit(0);
             }
 
+            //TODO filepath check
+
             PInvoke.PrepareConsole();
-            WorkPath = Path.GetDirectoryName(AppContext.BaseDirectory);
 
             //Make temp hidden folder. ffmpeg can not create one
             DeleteTemp();
             DirectoryInfo di = Directory.CreateDirectory(WorkPath + "/temp");
             di.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
+        }
+
+        private static string SelectFileDialog()
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.InitialDirectory = WorkPath;
+                openFileDialog.Filter = "All Video Media Files|*.wmv;*.avi;*.mpg;*.mpeg;*.m1v;*.mpe;*.mp4;*.mov;*.3g2;*.3gp2;*.3gp;*.3gpp;*.m4a;*.mkv;*.WMV;*.AVI;*.MPG;*.MPEG;*.M1V;*.MPE;*.MP4;*.MOV;*.3G2;*.3GP2;*.3GP;*.3GPP;*.M4A;*.MKV;";
+                openFileDialog.FilterIndex = 2;
+                openFileDialog.RestoreDirectory = true;
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    //Get the path of specified file
+                    return openFileDialog.FileName;
+                }
+            }
+            return null;
         }
 
         static void ExitApplication(object sender, EventArgs e)
