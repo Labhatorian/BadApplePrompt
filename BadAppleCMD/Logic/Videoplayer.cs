@@ -1,5 +1,4 @@
 ﻿using BadAppleCMD.Screens;
-using System.Drawing;
 using System.Drawing.Imaging;
 using System.Media;
 using System.Text;
@@ -21,7 +20,7 @@ namespace BadAppleCMD.Logic
         private string Buffer;
         //TODO Figure out best factors
         //360p -> 4x - 1080p -> 16x
-        private int ResizeFactor = 4;
+        public int ResizeFactor = 4;
 
         public void PlayVideo(string WorkingPath)
         {
