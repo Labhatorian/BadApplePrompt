@@ -2,7 +2,28 @@
 {
     public class Menu
     {
-        private int SelectedItem = 0;
+        //todo set get set for maximum
+        private int _SelectedItem = 0;
+        private int SelectedItem
+        {
+            get => _SelectedItem;
+            set
+            {
+                if (value <= 0)
+                {
+                    _SelectedItem = 0;
+                }
+                else if (value >= 1)
+                {
+                    _SelectedItem = 1;
+                }
+                else
+                {
+                    _SelectedItem = value;
+                }
+            }
+        }
+
         private readonly string Logo =
             "/$$$$$$$                  /$$        /$$$$$$                      /$$          \r\n" +
             "| $$__  $$                | $$       /$$__  $$                    | $$          \r\n" +
@@ -21,13 +42,27 @@
             while (true)
             {
                 Console.BackgroundColor = ConsoleColor.DarkBlue;
+                Console.ForegroundColor = ConsoleColor.White;
                 Console.Clear();
+
                 string[] LogoSplit = Logo.Split("\n");
+                if (SelectedItem == 0)
+                {
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+                else if (SelectedItem == 1)
+                {
+                    Console.ForegroundColor = ConsoleColor.Black;
+                }
+
                 for (int i = 0; i < LogoSplit.Length; i++)
                 {
                     Console.SetCursorPosition((Console.WindowWidth) / 2 - 40, Console.WindowHeight / 2 - 12 + i);
                     Console.Write(LogoSplit[i]);
                 }
+
+                Console.BackgroundColor = ConsoleColor.DarkBlue;
+                Console.ForegroundColor = ConsoleColor.White;
 
                 Console.SetCursorPosition((Console.WindowWidth) / 2 - 15, Console.WindowHeight / 2 + 5);
                 if (SelectedItem == 0)
@@ -39,7 +74,6 @@
 
                 Console.BackgroundColor = ConsoleColor.DarkBlue;
                 Console.ForegroundColor = ConsoleColor.White;
-
 
                 if (SelectedItem == 1)
                 {

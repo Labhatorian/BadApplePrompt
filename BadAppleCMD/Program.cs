@@ -9,6 +9,8 @@ namespace BadAppleCMD
         private static Videoplayer VideoPlayer = new();
 
         private static Menu MainMenu = new();
+        private static Settings SettingsMenu = new();
+
         //todo clear this out for release
         private static string FilePath = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0-windows10.0.22621.0\\win-x64\\Badapple.mp4";
         private static string WorkPath = "";
@@ -32,15 +34,21 @@ namespace BadAppleCMD
             }
             else
             {
-                int SelectedOption = MainMenu.MainMenu();
-                if (SelectedOption == 0)
-                {
-                    MakeAndPlayVideo();
-                }
-                else
-                {
-                    // open settings
-                }
+                StartMenu();
+            }
+        }
+
+        private static void StartMenu()
+        {
+            int SelectedOption = MainMenu.MainMenu();
+            if (SelectedOption == 0)
+            {
+                MakeAndPlayVideo();
+            }
+            else
+            {
+                SettingsMenu.SettingsPage(VideoPlayer);
+                StartMenu();
             }
         }
 
