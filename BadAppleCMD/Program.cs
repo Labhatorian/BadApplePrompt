@@ -12,6 +12,7 @@ namespace BadAppleCMD
         private static string WorkPath = "";
         private static string FrameFileExtension = "JPEG";
         public static bool Verbose = false;
+        public static bool AutoStart = false;
 
         public static int VideoWidth { get; set; }
         public static int VideoHeight { get; set; }
@@ -23,20 +24,27 @@ namespace BadAppleCMD
         {
             Initialise(args);
 
-            LoadingScreens.WriteScreen(ConsoleColor.DarkBlue, "Now Playing", FilePath);
-            Thread.Sleep(2000);
-            Console.Clear();
+            if (AutoStart)
+            {
+                LoadingScreens.WriteScreen(ConsoleColor.DarkBlue, "Now Playing", FilePath);
+                Thread.Sleep(2000);
+                Console.Clear();
 
-            FFmpegExecution.GetVideoInformation(FilePath);
-            FFmpegExecution.GetVideoFrames(FilePath, WorkPath);
-            FFmpegExecution.GetAudio(FilePath, WorkPath);
+                FFmpegExecution.GetVideoInformation(FilePath);
+                FFmpegExecution.GetVideoFrames(FilePath, WorkPath, FrameFileExtension);
+                FFmpegExecution.GetAudio(FilePath, WorkPath);
 
-            VideoPlayer.ResizeFrames(WorkPath);
-            VideoPlayer.PrepareConsole(WorkPath);
-            PInvoke.EnableCloseButton();
-            VideoPlayer.PlayVideo(WorkPath);
+                VideoPlayer.ResizeFrames(WorkPath);
+                VideoPlayer.PrepareConsole(WorkPath);
+                PInvoke.EnableCloseButton();
+                VideoPlayer.PlayVideo(WorkPath);
 
-            Environment.Exit(0);
+                Environment.Exit(0);
+            }
+            else
+            {
+                //open menu
+            }
         }
 
         private static void Initialise(string[] args)
@@ -66,6 +74,10 @@ namespace BadAppleCMD
                     {
                         Verbose = true;
                     }
+                    if (argument.Equals("-AutoStart"))
+                    {
+                        AutoStart = true;
+                    }
                 }
 
                 FilePath = Path.GetDirectoryName(args[args.Length - 1])
@@ -77,7 +89,6 @@ namespace BadAppleCMD
             {
                 LoadingScreens.WriteScreen(ConsoleColor.DarkRed, "No file has been provided", "Select a videofile or quit");
                 FilePath = SelectFileDialog();
-
                 if (FilePath is null) Environment.Exit(0);
             }
 
@@ -85,7 +96,7 @@ namespace BadAppleCMD
 
             PInvoke.PrepareConsole();
 
-            //Make temp hidden folder. ffmpeg can not create one
+            //Make hidden temp folder. ffmpeg can not create one
             DeleteTemp();
             DirectoryInfo di = Directory.CreateDirectory(WorkPath + "/temp");
             di.Attributes = FileAttributes.Directory | FileAttributes.Hidden;

@@ -12,9 +12,9 @@ namespace BadAppleCMD.Logic
             Thread.Sleep(1000);
         }
 
-        public void GetVideoFrames(string FilePath, string WorkingPath)
+        public void GetVideoFrames(string FilePath, string WorkingPath, string FileExtension)
         {
-            string parameter = "-i " + FilePath + " " + WorkingPath + "\\temp\\%08d.png";
+            string parameter = "-i " + FilePath + " " + WorkingPath + "\\temp\\%08d." + FileExtension;
             Console.CursorVisible = false;
             //TODO This does not work correctly on videos that are not bad apple
             //TODO resize as soon as frames get added -> FileSystemWatcher?
