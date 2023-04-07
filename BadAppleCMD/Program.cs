@@ -27,6 +27,7 @@ namespace BadAppleCMD
         static void Main(string[] args)
         {
             Initialise(args);
+            PInvoke.PrepareInitialConsole();
 
             if (AutoStart)
             {
@@ -54,7 +55,7 @@ namespace BadAppleCMD
 
         private static void MakeAndPlayVideo()
         {
-            PInvoke.PrepareConsole();
+            PInvoke.PrepareConsoleForPlayback();
             LoadingScreens.WriteScreen(ConsoleColor.DarkBlue, "Now Playing", FilePath);
             Thread.Sleep(2000);
             Console.Clear();
@@ -145,7 +146,7 @@ namespace BadAppleCMD
         static void ExitApplication(object sender, EventArgs e)
         {
             VideoPlayer.Audio?.Stop();
-            VideoPlayer.TotalFrameCounter = 2147483647;
+            VideoPlayer.TotalFrameCounter = 2147483646;
             GC.Collect();
 
             Thread.Sleep(500);

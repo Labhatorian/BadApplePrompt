@@ -2,6 +2,7 @@
 
 namespace BadAppleCMD.Logic
 {
+    //NOTE
     public class PlatformInvoke
     {
         //Console and its menu
@@ -10,9 +11,9 @@ namespace BadAppleCMD.Logic
 
         //Hexvalues of different options to apply
         private const int MF_BYCOMMAND = 0x00000000;
-        private const int MF_ENABLED = 0x0;
+        private const int MF_ENABLED = 0x00000000;
         private const int MF_GRAYED = 0x1;
-        private const int MF_DISABLED = 0x2;
+        private const int MF_DISABLED = 0x00000002;
 
         //Hexvalues of window menu options
         public const int SC_CLOSE = 0xF060;
@@ -20,12 +21,16 @@ namespace BadAppleCMD.Logic
         public const int SC_MAXIMIZE = 0xF030;
         public const int SC_SIZE = 0xF000;
 
-        //Hexvalue of quick-edit
+        //Hexvalue for disabling Quick-Edit
+        const int STD_INPUT_HANDLE = -10;
         const int ENABLE_QUICK_EDIT = 0x0040;
 
-        //For disabling console resize and closing
+        //Menu editing
         [DllImport("user32.dll")]
         static extern bool EnableMenuItem(IntPtr hMenu, uint uIDEnableItem, uint uEnable);
+
+        [DllImport("user32.dll")]
+        static extern bool ModifyMenuA(IntPtr hMenu, uint uPosition, uint uFlags, IntPtr uIDNewItem);
 
         [DllImport("user32.dll")]
         static extern bool DrawMenuBar(IntPtr hWnd);
@@ -36,7 +41,7 @@ namespace BadAppleCMD.Logic
         [DllImport("kernel32.dll", ExactSpelling = true)]
         private static extern IntPtr GetConsoleWindow();
 
-        //For disabling quick-edit
+        //Quick edit
         [DllImport("kernel32.dll")]
         static extern bool SetConsoleMode(IntPtr hConsoleHandle, int mode);
 
@@ -46,32 +51,37 @@ namespace BadAppleCMD.Logic
         [DllImport("kernel32.dll")]
         static extern IntPtr GetStdHandle(int handle);
 
-        public void PrepareConsole()
+        public void PrepareInitialConsole()
         {
             sysMenu = GetSystemMenu(handle, false);
 
-            //Disable resizing the window
-            if (handle != IntPtr.Zero)
-            {
-                EnableMenuItem(sysMenu, SC_CLOSE, MF_BYCOMMAND | MF_GRAYED);
-                EnableMenuItem(sysMenu, SC_MAXIMIZE, MF_BYCOMMAND | MF_GRAYED);
-                EnableMenuItem(sysMenu, SC_MINIMIZE, MF_BYCOMMAND | MF_GRAYED);
-                EnableMenuItem(sysMenu, SC_SIZE, MF_BYCOMMAND | MF_DISABLED);
-            }
+            if (handle == IntPtr.Zero) return;
+            ModifyMenuA(sysMenu, SC_MAXIMIZE, MF_BYCOMMAND | MF_DISABLED, sysMenu);
+            ModifyMenuA(sysMenu, SC_MINIMIZE, MF_BYCOMMAND | MF_DISABLED, sysMenu);
+            ModifyMenuA(sysMenu, SC_SIZE, MF_BYCOMMAND | MF_DISABLED, sysMenu);
+            DrawMenuBar(handle);
 
             //Disable Quick-Edit mode and selecting
-            int mode;
-            if (handle != IntPtr.Zero)
-            {
-                GetConsoleMode(handle, out mode);
-                mode &= ~ENABLE_QUICK_EDIT;
-                SetConsoleMode(handle, mode);
-            }
+            IntPtr consoleHandle = GetStdHandle(STD_INPUT_HANDLE);
+            if (consoleHandle == IntPtr.Zero) return;
+            GetConsoleMode(consoleHandle, out int mode);
+            mode &= ~ENABLE_QUICK_EDIT;
+            SetConsoleMode(consoleHandle, mode);
+        }
+
+        public void PrepareConsoleForPlayback()
+        {
+            ModifyMenuA(sysMenu, SC_CLOSE, MF_BYCOMMAND | MF_DISABLED, sysMenu);
+            DrawMenuBar(handle);
         }
 
         public void EnableCloseButton()
         {
-            EnableMenuItem(sysMenu, SC_CLOSE, MF_BYCOMMAND | MF_ENABLED);
+            sysMenu = GetSystemMenu(handle, false);
+
+            ModifyMenuA(sysMenu, SC_CLOSE, MF_ENABLED, sysMenu);
+            EnableMenuItem(sysMenu, SC_CLOSE, MF_ENABLED);
+            DrawMenuBar(handle);
         }
     }
 }
