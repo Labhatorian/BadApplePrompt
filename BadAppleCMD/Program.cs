@@ -147,6 +147,7 @@ namespace BadAppleCMD
         {
             VideoPlayer.Audio?.Stop();
             VideoPlayer.TotalFrameCounter = 2147483646;
+            VideoPlayer.RunVideo = false;
             GC.Collect();
 
             Thread.Sleep(500);
