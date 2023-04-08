@@ -6,17 +6,15 @@ namespace BadAppleCMD.Logic
     public class PlatformInvoke
     {
         //Console and its menu
-        private IntPtr handle = GetConsoleWindow();
-        private IntPtr sysMenu;
+        public IntPtr handle = GetConsoleWindow();
+        public IntPtr sysMenu;
 
         //Hexvalues of different options to apply
         private const int MF_BYCOMMAND = 0x00000000;
-        private const int MF_ENABLED = 0x00000000;
-        private const int MF_GRAYED = 0x1;
+        public const int MF_ENABLED = 0x00000000;
         private const int MF_DISABLED = 0x00000002;
 
         //Hexvalues of window menu options
-        public const int SC_CLOSE = 0xF060;
         public const int SC_MINIMIZE = 0xF020;
         public const int SC_MAXIMIZE = 0xF030;
         public const int SC_SIZE = 0xF000;
@@ -27,13 +25,13 @@ namespace BadAppleCMD.Logic
 
         //Menu editing
         [DllImport("user32.dll")]
-        static extern bool EnableMenuItem(IntPtr hMenu, uint uIDEnableItem, uint uEnable);
-
-        [DllImport("user32.dll")]
         static extern bool ModifyMenuA(IntPtr hMenu, uint uPosition, uint uFlags, IntPtr uIDNewItem);
 
         [DllImport("user32.dll")]
-        static extern bool DrawMenuBar(IntPtr hWnd);
+        public static extern bool EnableMenuItem(IntPtr hMenu, uint uIDEnableItem, uint uEnable);
+
+        [DllImport("user32.dll")]
+        public static extern bool DrawMenuBar(IntPtr hWnd);
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
@@ -51,7 +49,7 @@ namespace BadAppleCMD.Logic
         [DllImport("kernel32.dll")]
         static extern IntPtr GetStdHandle(int handle);
 
-        public void PrepareInitialConsole()
+        public void PrepareConsole()
         {
             sysMenu = GetSystemMenu(handle, false);
 
@@ -67,21 +65,6 @@ namespace BadAppleCMD.Logic
             GetConsoleMode(consoleHandle, out int mode);
             mode &= ~ENABLE_QUICK_EDIT;
             SetConsoleMode(consoleHandle, mode);
-        }
-
-        public void PrepareConsoleForPlayback()
-        {
-            ModifyMenuA(sysMenu, SC_CLOSE, MF_BYCOMMAND | MF_DISABLED, sysMenu);
-            DrawMenuBar(handle);
-        }
-
-        public void EnableCloseButton()
-        {
-            sysMenu = GetSystemMenu(handle, false);
-
-            ModifyMenuA(sysMenu, SC_CLOSE, MF_ENABLED, sysMenu);
-            EnableMenuItem(sysMenu, SC_CLOSE, MF_ENABLED);
-            DrawMenuBar(handle);
         }
     }
 }

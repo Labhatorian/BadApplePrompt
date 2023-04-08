@@ -1,5 +1,7 @@
 ﻿using BadAppleCMD.Logic;
 using BadAppleCMD.Screens;
+using Menu = BadAppleCMD.Screens.Menu;
+
 namespace BadAppleCMD
 {
     public class Program
@@ -27,7 +29,7 @@ namespace BadAppleCMD
         static void Main(string[] args)
         {
             Initialise(args);
-            PInvoke.PrepareInitialConsole();
+            PInvoke.PrepareConsole();
 
             if (AutoStart)
             {
@@ -55,7 +57,6 @@ namespace BadAppleCMD
 
         private static void MakeAndPlayVideo()
         {
-            PInvoke.PrepareConsoleForPlayback();
             LoadingScreens.WriteScreen(ConsoleColor.DarkBlue, "Now Playing", FilePath);
             Thread.Sleep(2000);
             Console.Clear();
@@ -66,7 +67,6 @@ namespace BadAppleCMD
 
             VideoPlayer.ResizeFrames(WorkPath);
             VideoPlayer.PrepareConsole(WorkPath);
-            PInvoke.EnableCloseButton();
             VideoPlayer.PlayVideo(WorkPath);
 
             Environment.Exit(0);
