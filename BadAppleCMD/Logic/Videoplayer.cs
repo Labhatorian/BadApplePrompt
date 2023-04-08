@@ -18,9 +18,9 @@ namespace BadAppleCMD.Logic
         private bool VideoAudioDesync = false;
         public SoundPlayer? Audio;
         private string Buffer;
-        //TODO Figure out best factors
         //360p -> 4x - 1080p -> 16x
         public int ResizeFactor = 4;
+        public bool RunVideo = false;
 
         public void PlayVideo(string WorkingPath)
         {
@@ -34,8 +34,8 @@ namespace BadAppleCMD.Logic
             timer.Start();
             if (File.Exists(WorkingPath + "/temp/Audio.wav")) Audio?.Play();
 
-            //TODO Exiting crashes this as it is not stopping everything before deleting anymore
-            while (TotalFrameCounter <= TotalFileCount)
+            RunVideo = true;
+            while (TotalFrameCounter <= TotalFileCount && RunVideo)
             {
                 if (FPScounter != Program.VideoFrameRate)
                 {

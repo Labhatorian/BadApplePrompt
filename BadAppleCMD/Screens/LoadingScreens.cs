@@ -29,7 +29,6 @@ namespace BadAppleCMD.Screens
                 Console.SetCursorPosition((Console.WindowWidth - MainString.Length) / 2, Console.WindowHeight / 2 - 3);
                 Console.WriteLine(MainString);
 
-
                 //convert to percentage
                 StringBuilder loadingbar = new("[");
 
