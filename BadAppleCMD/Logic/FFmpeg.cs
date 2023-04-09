@@ -31,14 +31,14 @@ namespace BadAppleCMD.Logic
         private void ExecuteFFprobe(string parameter, string screenText, bool screenLoadingBar = false)
         {
             Task task = Task.Run(() => { Execute(".\\ffprobe.exe", parameter, true); });
-            if (!Program.Verbose) LoadingScreens.InformationOrLoadingBar(screenText, screenLoadingBar);
+            if (!Program.Verbose) LoadingScreens.InformationOrLoadingBar(ConsoleColor.DarkBlue, screenText, screenLoadingBar);
             task.Wait();
         }
 
         private void ExecuteFFmpeg(string parameter, string screenText, bool screenLoadingBar = false)
         {
             Task task = Task.Run(() => { Execute(".\\ffmpeg.exe", parameter, true); });
-            if (!Program.Verbose) LoadingScreens.InformationOrLoadingBar(screenText, screenLoadingBar);
+            if (!Program.Verbose) LoadingScreens.InformationOrLoadingBar(ConsoleColor.DarkBlue, screenText, screenLoadingBar);
             task.Wait();
         }
 

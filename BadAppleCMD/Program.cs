@@ -67,7 +67,7 @@ namespace BadAppleCMD
 
             Task task = Task.Run(() => { VideoPlayer.ResizeFrames(WorkPath); });
             LoadingScreens.LoadingFinished = false;
-            LoadingScreens.InformationOrLoadingBar("Resizing frames", false);
+            LoadingScreens.InformationOrLoadingBar(ConsoleColor.DarkBlue, "Resizing frames", false);
             task.Wait();
 
             VideoPlayer.PrepareConsole(WorkPath);
