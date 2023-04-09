@@ -8,26 +8,21 @@ namespace BadAppleCMD.Screens
         public static string? Current { get; set; }
         public static bool LoadingFinished { get; set; }
 
-        public static void WriteScreen(ConsoleColor BackgroundColour, string MainString, string SecondString)
+        public static void WriteScreen(ConsoleColor BackgroundColour, string MainString, string SecondString, bool? ClearConsole = true)
         {
             Console.BackgroundColor = BackgroundColour;
-            Console.Clear();
+            if ((bool)ClearConsole) Console.Clear();
             Console.SetCursorPosition((Console.WindowWidth - MainString.Length) / 2, Console.WindowHeight / 2 - 3);
             Console.WriteLine(MainString);
             Console.SetCursorPosition((Console.WindowWidth - SecondString.Length) / 2, Console.WindowHeight / 2);
             Console.WriteLine(SecondString);
         }
 
-        public static void InformationOrLoadingBar(string MainString, bool Information)
+        public static void InformationOrLoadingBar(ConsoleColor BackgroundColour, string MainString, bool Information)
         {
-            //todo Use WriteScreen() to save code
             Console.Clear();
             while (!LoadingFinished)
             {
-                Console.SetCursorPosition((Console.WindowWidth - MainString.Length) / 2, Console.WindowHeight / 2 - 3);
-                Console.WriteLine(MainString);
-
-                //convert to percentage
                 StringBuilder loadingbar = new("[");
 
                 if (!Information)
@@ -40,8 +35,7 @@ namespace BadAppleCMD.Screens
                 }
 
                 loadingbar.Append(']');
-                Console.SetCursorPosition((Console.WindowWidth - loadingbar.ToString().Length) / 2, Console.WindowHeight / 2);
-                Console.WriteLine(loadingbar.ToString());
+                WriteScreen(BackgroundColour, MainString, loadingbar.ToString(), false);
             }
             Total = null;
             Current = null;
