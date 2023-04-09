@@ -4,7 +4,6 @@ namespace BadAppleCMD.Screens
 {
     public class Settings
     {
-        //todo set get set for maximum
         private int _SelectedItem = 0;
         private int SelectedItem
         {
@@ -50,6 +49,7 @@ namespace BadAppleCMD.Screens
             "       `doooooooob dooooooob'\r\n" +
             "         `\"\"\"\"\"\"\"' `\"\"\"\"\"\"'";
 
+        //todo improve
         public void SettingsPage(Videoplayer videoplayer)
         {
             bool breakout = false;
@@ -223,7 +223,7 @@ namespace BadAppleCMD.Screens
                                 videoplayer.ResizeFactor = 16;
                                 break;
                             case 5:
-                                //todo dropdown or input
+                                breakout = true;
                                 break;
                             case 6:
                                 Program.Verbose = !Program.Verbose;
@@ -237,9 +237,33 @@ namespace BadAppleCMD.Screens
             {
                 return;
             }
+            else if (SelectedItem == 5)
+            {
+                InputScreen(videoplayer, "Edit file extension");
+            }
             else
             {
                 SettingsPage(videoplayer);
+            }
+        }
+
+        //todo make
+        public void InputScreen(Videoplayer videoplayer, string MainString)
+        {
+            bool breakout = true;
+
+            Console.BackgroundColor = ConsoleColor.DarkBlue;
+            Console.Clear();
+            string SecondString = " [" + "                    " + "]";
+
+            while (breakout)
+            {
+                Console.SetCursorPosition((Console.WindowWidth - MainString.Length) / 2, Console.WindowHeight / 2 - 3);
+                Console.WriteLine(MainString);
+                Console.SetCursorPosition((Console.WindowWidth - SecondString.Length) / 2, Console.WindowHeight / 2);
+                Console.WriteLine(SecondString);
+                Console.SetCursorPosition((Console.WindowWidth - SecondString.Length) / 2 + (Program.FrameFileExtension.Length / 2), Console.WindowHeight / 2);
+                Console.Write(Program.FrameFileExtension);
             }
         }
     }

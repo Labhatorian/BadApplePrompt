@@ -2,7 +2,6 @@
 {
     public class Menu
     {
-        //todo set get set for maximum
         private int _SelectedItem = 0;
         private int SelectedItem
         {
