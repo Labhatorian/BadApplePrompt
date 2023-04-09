@@ -65,7 +65,11 @@ namespace BadAppleCMD
             FFmpegExecution.GetVideoFrames(FilePath, WorkPath, FrameFileExtension);
             FFmpegExecution.GetAudio(FilePath, WorkPath);
 
-            VideoPlayer.ResizeFrames(WorkPath);
+            Task task = Task.Run(() => { VideoPlayer.ResizeFrames(WorkPath); });
+            LoadingScreens.LoadingFinished = false;
+            LoadingScreens.InformationOrLoadingBar("Resizing frames", false);
+            task.Wait();
+
             VideoPlayer.PrepareConsole(WorkPath);
             VideoPlayer.PlayVideo(WorkPath);
 
