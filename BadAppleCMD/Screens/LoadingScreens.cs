@@ -1,12 +1,11 @@
-﻿using System.Globalization;
-using System.Text;
+﻿using System.Text;
 
 namespace BadAppleCMD.Screens
 {
     public static class LoadingScreens
     {
-        public static string? TotalDuration { get; set; }
-        public static string? CurrentDuration { get; set; }
+        public static string? Total { get; set; }
+        public static string? Current { get; set; }
         public static bool LoadingFinished { get; set; }
 
         public static void WriteScreen(ConsoleColor BackgroundColour, string MainString, string SecondString)
@@ -21,7 +20,6 @@ namespace BadAppleCMD.Screens
 
         public static void InformationOrLoadingBar(string MainString, bool Information)
         {
-            //todo add additional option to display a third line??? (For what again?)
             //todo Use WriteScreen() to save code
             Console.Clear();
             while (!LoadingFinished)
@@ -45,33 +43,24 @@ namespace BadAppleCMD.Screens
                 Console.SetCursorPosition((Console.WindowWidth - loadingbar.ToString().Length) / 2, Console.WindowHeight / 2);
                 Console.WriteLine(loadingbar.ToString());
             }
+            Total = null;
+            Current = null;
         }
 
         private static void LoadingBar(StringBuilder loadingbar)
         {
             int totaldurationseconds = 1;
             int currentdurationseconds = 0;
+            int totalBars = 0;
 
-            if (TotalDuration is not null && CurrentDuration is not null)
+            if (Total is not null && Current is not null)
             {
-                try
-                {
-                    DateTime totaldurationTime = DateTime.ParseExact(TotalDuration, "HH:mm:ss.ff",
-                                    CultureInfo.InvariantCulture);
-                    totaldurationseconds = totaldurationTime.Hour * 60 * 60 + totaldurationTime.Minute * 60 + totaldurationTime.Second + totaldurationTime.Millisecond / 100;
+                totaldurationseconds = int.Parse(Total);
+                currentdurationseconds = int.Parse(Current);
 
-                    DateTime currentdurationTime = DateTime.ParseExact(CurrentDuration, "HH:mm:ss.ff",
-                                           CultureInfo.InvariantCulture);
-                    currentdurationseconds = currentdurationTime.Hour * 60 * 60 + currentdurationTime.Minute * 60 + currentdurationTime.Second + currentdurationTime.Millisecond / 100;
-                }
-                catch (FormatException)
-                {
-                    //ffmpeg hasnt started working on the video yet, ignore
-                }
+                //TODO Are we sure this is right?
+                totalBars = (int)Math.Ceiling((double)(currentdurationseconds / (double)totaldurationseconds * 100 / 5));
             }
-
-            //TODO Are we sure this is right?
-            int totalBars = (int)Math.Ceiling((double)(currentdurationseconds / (double)totaldurationseconds * 100 / 5));
 
             for (int i = 1; i <= 20; i++)
             {

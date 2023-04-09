@@ -73,16 +73,16 @@ namespace BadAppleCMD.Logic
         {
             TotalFileCount = Directory.GetFiles(WorkingPath + "/temp", "*", SearchOption.TopDirectoryOnly).Length;
 
-            //UNDONE Resize every image to its factor
-            LoadingScreens.WriteScreen(ConsoleColor.DarkBlue, "Resizing frames", "[LoadingBar - Work In Progress]");
-
+            LoadingScreens.Total = TotalFileCount.ToString();
             while (TotalFrameCounter < TotalFileCount)
             {
+                LoadingScreens.Current = TotalFrameCounter.ToString();
                 Bitmap resizedImage;
                 using (Bitmap image = new(WorkingPath + $"\\temp\\{TotalFrameCounter:00000000}." + Program.FrameFileExtension)) resizedImage = new(image, new Size(image.Width / ResizeFactor, image.Height / ResizeFactor));
                 resizedImage.Save(WorkingPath + $"\\temp\\{TotalFrameCounter:00000000}.png", ImageFormat.Png);
                 TotalFrameCounter++;
             }
+            LoadingScreens.LoadingFinished = true;
             TotalFrameCounter = 1;
         }
 

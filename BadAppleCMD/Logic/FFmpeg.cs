@@ -1,5 +1,6 @@
 ﻿using BadAppleCMD.Screens;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace BadAppleCMD.Logic
 {
@@ -17,7 +18,6 @@ namespace BadAppleCMD.Logic
             string parameter = "-i " + FilePath + " " + WorkingPath + "\\temp\\%08d." + FileExtension;
             Console.CursorVisible = false;
             //TODO This does not work correctly on videos that are not bad apple
-            //TODO resize as soon as frames get added -> FileSystemWatcher?
             ExecuteFFmpeg(parameter, "Getting every frame from the video...");
         }
 
@@ -106,11 +106,18 @@ namespace BadAppleCMD.Logic
                     {
                         if (e.Data.Contains("Duration:") && getinformation)
                         {
-                            LoadingScreens.TotalDuration = e.Data.Substring(e.Data.LastIndexOf("Duration:") + 10, e.Data.LastIndexOf("Duration:") + 9);
+                            string totaltime = e.Data.Substring(e.Data.LastIndexOf("Duration:") + 10, e.Data.LastIndexOf("Duration:") + 9);
+
+                            DateTime totaldurationTime = DateTime.ParseExact(totaltime, "HH:mm:ss.ff",
+                                    CultureInfo.InvariantCulture);
+                            LoadingScreens.Total = (totaldurationTime.Hour * 60 * 60 + totaldurationTime.Minute * 60 + totaldurationTime.Second + totaldurationTime.Millisecond / 100).ToString();
                         }
                         if (e.Data.Contains("time="))
                         {
-                            LoadingScreens.CurrentDuration = e.Data.Substring(e.Data.LastIndexOf("time=") + 5, e.Data.LastIndexOf("time=:") + 12);
+                            string current = e.Data.Substring(e.Data.LastIndexOf("time=") + 5, e.Data.LastIndexOf("time=:") + 12);
+                            DateTime currentTime = DateTime.ParseExact(current, "HH:mm:ss.ff",
+                                   CultureInfo.InvariantCulture);
+                            LoadingScreens.Current = (currentTime.Hour * 60 * 60 + currentTime.Minute * 60 + currentTime.Second + currentTime.Millisecond / 100).ToString();
                         }
                     }
 
