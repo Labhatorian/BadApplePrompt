@@ -51,8 +51,6 @@ namespace BadAppleCMD.Screens
             {
                 totaldurationseconds = int.Parse(Total);
                 currentdurationseconds = int.Parse(Current);
-
-                //TODO Are we sure this is right?
                 totalBars = (int)Math.Ceiling((double)(currentdurationseconds / (double)totaldurationseconds * 100 / 5));
             }
 
