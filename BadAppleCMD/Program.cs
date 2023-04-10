@@ -33,14 +33,8 @@ namespace BadAppleCMD
             Initialise(args);
             PInvoke.PrepareConsole();
 
-            if (AutoStart)
-            {
-                MakeAndPlayVideo();
-            }
-            else
-            {
-                StartMenu();
-            }
+            if (AutoStart) MakeAndPlayVideo();
+            else StartMenu();
         }
 
         private static void StartMenu()
@@ -98,38 +92,34 @@ namespace BadAppleCMD
 
             if (args.Length != 0)
             {
-                //todo check if this works
                 for (int i = 0; i < args.Length; i++)
                 {
                     string argument = args[i];
+                    argument.TrimStart('-');
 
-                    if (argument.Equals("-FileExtension"))
+                    switch (argument)
                     {
-                        FrameFileExtension = args[i + 1];
-                    }
-                    if (argument.Equals("-Factor"))
-                    {
-                        VideoPlayer.ResizeFactor = int.Parse(args[i + 1]);
-                    }
-                    if (argument.Equals("-Verbose"))
-                    {
-                        Verbose = true;
-                    }
-                    if (argument.Equals("-AutoStart"))
-                    {
-                        AutoStart = true;
-                    }
-                    if (argument.Equals("-Resize"))
-                    {
-                        Resize = false;
-                    }
-                    if (argument.Equals("-ConvertBlackWhite"))
-                    {
-                        BlackWhite = true;
-                    }
-                    if (argument.Equals("-FPSCounter"))
-                    {
-                        VideoPlayer.ShowFPSCounter = false;
+                        case "FileExtension":
+                            FrameFileExtension = args[i + 1];
+                            break;
+                        case "Factor":
+                            VideoPlayer.ResizeFactor = int.Parse(args[i + 1]);
+                            break;
+                        case "Verbose":
+                            Verbose = true;
+                            break;
+                        case "AutoStart":
+                            AutoStart = true;
+                            break;
+                        case "Resize":
+                            Resize = false;
+                            break;
+                        case "ConvertBlackWhite":
+                            BlackWhite = true;
+                            break;
+                        case "FPSCounter":
+                            VideoPlayer.ShowFPSCounter = false;
+                            break;
                     }
                 }
 
@@ -145,7 +135,7 @@ namespace BadAppleCMD
                 //if (FilePath is null) Environment.Exit(0);
             }
 
-            //TODO filepath check
+            //TODO filepath check, i dont remember for what
 
             //Make hidden temp folder. ffmpeg can not create one
             DeleteTemp();
@@ -180,6 +170,7 @@ namespace BadAppleCMD
 
             Thread.Sleep(500);
             Console.Title = "Exiting BadApplePrompt...";
+            Console.ForegroundColor = ConsoleColor.White;
             LoadingScreens.WriteScreen(ConsoleColor.DarkBlue, "Thank you!", "Cleaning up and exiting...");
             Thread.Sleep(500);
 
