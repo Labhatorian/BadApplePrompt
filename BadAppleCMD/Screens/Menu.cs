@@ -71,6 +71,7 @@
                 }
             }
         }
+
         public static void NotSelected()
         {
             Console.BackgroundColor = ConsoleColor.DarkBlue;
