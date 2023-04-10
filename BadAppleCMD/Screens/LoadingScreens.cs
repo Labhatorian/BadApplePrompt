@@ -11,6 +11,7 @@ namespace BadAppleCMD.Screens
         public static void WriteScreen(ConsoleColor BackgroundColour, string MainString, string SecondString, bool? ClearConsole = true)
         {
             Console.BackgroundColor = BackgroundColour;
+            Console.Title = "BadApplePrompt - " + MainString;
             if ((bool)ClearConsole) Console.Clear();
             Console.SetCursorPosition((Console.WindowWidth - MainString.Length) / 2, Console.WindowHeight / 2 - 3);
             Console.WriteLine(MainString);

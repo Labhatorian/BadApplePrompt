@@ -13,6 +13,7 @@ namespace BadAppleCMD.Logic
         private int VideoWidthColumns = 0;
         private int VideoHeightColumns = 0;
         private int FPScounter = 0;
+        public bool ShowFPSCounter = true;
         public int TotalFrameCounter = 1;
         private string FPSstring = "FPS: 0";
         private bool VideoAudioDesync = false;
@@ -60,7 +61,7 @@ namespace BadAppleCMD.Logic
 
             //Prevents crashing of too big of a window
             if (VideoWidthColumns > Console.LargestWindowWidth) VideoWidthColumns = Console.LargestWindowWidth;
-            VideoHeightColumns += 1; //For FPS Counter
+            VideoHeightColumns += 1; //Required otherwise the video jumps around
             if (VideoHeightColumns > Console.LargestWindowHeight) VideoHeightColumns = Console.LargestWindowHeight;
 
             Console.SetWindowSize(VideoWidthColumns, VideoHeightColumns);
@@ -112,7 +113,12 @@ namespace BadAppleCMD.Logic
                 }
             }
             VideoHeightColumns = height;
+
+            //This might seem weird, but it prevents a yellow line bleeding through for whatever reason
+            //We also can't just not do this because it needs one extra heightcolumn to prevent video jumping around
+            if (!ShowFPSCounter) FPSstring = new string(' ', FPSstring.Length);
             sb.Append(FPSstring);
+
             for (int i = VideoWidthColumns - FPSstring.Length; i > 0; i--)
             {
                 sb.Append(' ');
@@ -123,6 +129,7 @@ namespace BadAppleCMD.Logic
         private void OnTimedEvent(object source, ElapsedEventArgs e)
         {
             FPSstring = $"FPS: {FPScounter}";
+            //todo do we need use videoaudiodesync?
             if (FPScounter < Program.VideoFrameRate && !VideoAudioDesync) VideoAudioDesync = true;
             else if (VideoAudioDesync) FPSstring += " - Video desynced!";
             FPScounter = 0;

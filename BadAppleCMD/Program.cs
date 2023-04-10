@@ -71,8 +71,8 @@ namespace BadAppleCMD
             task.Wait();
 
             VideoPlayer.PrepareConsole(WorkPath);
+            Console.Title = "Now Playing: " + Path.GetFileName(FilePath);
             VideoPlayer.PlayVideo(WorkPath);
-
             Environment.Exit(0);
         }
 
@@ -155,6 +155,7 @@ namespace BadAppleCMD
             GC.Collect();
 
             Thread.Sleep(500);
+            Console.Title = "Exiting BadApplePrompt...";
             LoadingScreens.WriteScreen(ConsoleColor.DarkBlue, "Thank you!", "Cleaning up and exiting...");
             Thread.Sleep(500);
 
