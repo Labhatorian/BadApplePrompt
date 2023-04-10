@@ -8,7 +8,6 @@ namespace BadAppleCMD.Logic
 {
     public class Videoplayer
     {
-        private int TotalFileCount;
         private int VideoWidthColumns = 0;
         private int VideoHeightColumns = 0;
         private int FPScounter = 0;
@@ -35,7 +34,7 @@ namespace BadAppleCMD.Logic
             if (File.Exists(WorkingPath + "/temp/Audio.wav")) Audio?.Play();
 
             RunVideo = true;
-            while (TotalFrameCounter <= TotalFileCount && RunVideo)
+            while (TotalFrameCounter <= Program.TotalVideoFrames && RunVideo)
             {
                 if (FPScounter != Program.VideoFrameRate)
                 {
@@ -75,11 +74,9 @@ namespace BadAppleCMD.Logic
 
         public void ConvertFrames(string WorkingPath)
         {
-            TotalFileCount = Directory.GetFiles(WorkingPath + "/temp", "*", SearchOption.TopDirectoryOnly).Length;
-
-            LoadingScreens.Total = TotalFileCount.ToString();
+            LoadingScreens.Total = Program.TotalVideoFrames.ToString();
             TotalFrameCounter = 1;
-            while (TotalFrameCounter < TotalFileCount)
+            while (TotalFrameCounter < Program.TotalVideoFrames)
             {
                 LoadingScreens.Current = TotalFrameCounter.ToString();
                 Bitmap resizedImage;

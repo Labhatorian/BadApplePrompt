@@ -66,6 +66,8 @@ namespace BadAppleCMD.Screens
             loadingbar.Append($"Resolution= {Program.VideoWidth}x{Program.VideoHeight}");
             loadingbar.Append(" | ");
             loadingbar.Append($"Framerate= {Program.VideoFrameRate} FPS");
+            loadingbar.Append(" | ");
+            loadingbar.Append($"Frames= {Program.TotalVideoFrames}");
         }
     }
 }

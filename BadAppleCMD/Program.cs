@@ -25,7 +25,7 @@ namespace BadAppleCMD
         public static int VideoWidth { get; set; }
         public static int VideoHeight { get; set; }
         public static int VideoFrameRate { get; set; }
-        public static int TotalVideoFrames { get; set; } //TODO use ffprobe to get max amount of frames
+        public static int TotalVideoFrames { get; set; }
 
         [STAThread]
         static void Main(string[] args)
