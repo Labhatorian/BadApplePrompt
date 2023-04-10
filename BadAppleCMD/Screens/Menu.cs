@@ -42,6 +42,7 @@
             {
                 Console.BackgroundColor = ConsoleColor.DarkBlue;
                 Console.ForegroundColor = ConsoleColor.White;
+                Console.Title = "BadApplePrompt";
                 Console.Clear();
 
                 string[] LogoSplit = Logo.Split("\n");

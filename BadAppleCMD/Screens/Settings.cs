@@ -14,9 +14,9 @@ namespace BadAppleCMD.Screens
                 {
                     _SelectedItem = 0;
                 }
-                else if (value >= 6)
+                else if (value >= 7)
                 {
-                    _SelectedItem = 6;
+                    _SelectedItem = 7;
                 }
                 else
                 {
@@ -56,6 +56,7 @@ namespace BadAppleCMD.Screens
 
             Console.BackgroundColor = ConsoleColor.DarkBlue;
             Console.ForegroundColor = ConsoleColor.White;
+            Console.Title = "BadApplePrompt - Settings";
             Console.Clear();
 
             string[] AppleSplit = Apple.Split("\n");
@@ -184,6 +185,25 @@ namespace BadAppleCMD.Screens
                     Console.BackgroundColor = ConsoleColor.White;
                     Console.ForegroundColor = ConsoleColor.Black;
                 }
+                Console.Write("[FPS Counter] = ");
+                if (videoplayer.ShowFPSCounter)
+                {
+                    Console.Write("[█]");
+                }
+                else
+                {
+                    Console.Write("[ ]");
+                }
+
+                Console.BackgroundColor = ConsoleColor.DarkBlue;
+                Console.ForegroundColor = ConsoleColor.White;
+
+                Console.SetCursorPosition(2, 14);
+                if (SelectedItem == 7)
+                {
+                    Console.BackgroundColor = ConsoleColor.White;
+                    Console.ForegroundColor = ConsoleColor.Black;
+                }
                 Console.Write("[Verbose mode] = ");
                 if (Program.Verbose)
                 {
@@ -226,6 +246,9 @@ namespace BadAppleCMD.Screens
                                 breakout = true;
                                 break;
                             case 6:
+                                videoplayer.ShowFPSCounter = !videoplayer.ShowFPSCounter;
+                                break;
+                            case 7:
                                 Program.Verbose = !Program.Verbose;
                                 break;
                         }
