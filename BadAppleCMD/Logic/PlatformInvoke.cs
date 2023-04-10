@@ -2,7 +2,6 @@
 
 namespace BadAppleCMD.Logic
 {
-    //NOTE
     public class PlatformInvoke
     {
         //Console and its menu
@@ -26,9 +25,6 @@ namespace BadAppleCMD.Logic
         //Menu editing
         [DllImport("user32.dll")]
         static extern bool ModifyMenuA(IntPtr hMenu, uint uPosition, uint uFlags, IntPtr uIDNewItem);
-
-        [DllImport("user32.dll")]
-        public static extern bool EnableMenuItem(IntPtr hMenu, uint uIDEnableItem, uint uEnable);
 
         [DllImport("user32.dll")]
         public static extern bool DrawMenuBar(IntPtr hWnd);

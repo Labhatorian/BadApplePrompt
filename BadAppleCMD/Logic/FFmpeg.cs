@@ -8,9 +8,9 @@ namespace BadAppleCMD.Logic
     {
         public void GetVideoInformation(string FilePath)
         {
-            string parameter = "-v error -select_streams v:0 -show_entries stream=width,height,avg_frame_rate -of default=nw=1 " + FilePath;
+            string parameter = "-v error -select_streams v:0 -count_frames -show_entries stream=nb_read_frames,width,height,avg_frame_rate -of default=nw=1 " + FilePath;
             ExecuteFFprobe(parameter, "Getting information about the video...", true);
-            Thread.Sleep(1000);
+            Thread.Sleep(2000);
         }
 
         public void GetVideoFrames(string FilePath, string WorkingPath, string FileExtension)
@@ -88,6 +88,11 @@ namespace BadAppleCMD.Logic
                             int valueOne = int.Parse(frameratefraction.Split('/')[0]);
                             int valueTwo = int.Parse(frameratefraction[(frameratefraction.LastIndexOf('/') + 1)..]);
                             Program.VideoFrameRate = valueOne / valueTwo;
+                        }
+
+                        if (e.Data.Contains("nb_read_frames"))
+                        {
+                            Program.TotalVideoFrames = int.Parse(e.Data[(e.Data.LastIndexOf("nb_read_frames=") + 15)..]);
                         }
                     }
                 }
