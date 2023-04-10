@@ -15,7 +15,7 @@ namespace BadAppleCMD.Logic
 
         public void GetVideoFrames(string FilePath, string WorkingPath, string FileExtension)
         {
-            string parameter = "-i " + FilePath + (Program.BlackWhite ? " -vf hue=s=0" : "") + " -f image2 " + WorkingPath + "\\temp\\%08d." + FileExtension;
+            string parameter = "-i " + FilePath + (Program.BlackWhite ? " -vf colorchannelmixer=.3:.4:.3:0:.3:.4:.3:0:.3" : "") + " -f image2 " + WorkingPath + "\\temp\\%08d." + FileExtension;
             Console.CursorVisible = false;
             //TODO This does not work correctly on videos that are not bad apple
             ExecuteFFmpeg(parameter, "Getting every frame from the video...");
@@ -87,7 +87,8 @@ namespace BadAppleCMD.Logic
                             string frameratefraction = e.Data[(e.Data.LastIndexOf("avg_frame_rate=") + 15)..];
                             int valueOne = int.Parse(frameratefraction.Split('/')[0]);
                             int valueTwo = int.Parse(frameratefraction[(frameratefraction.LastIndexOf('/') + 1)..]);
-                            Program.VideoFrameRate = valueOne / valueTwo;
+                            double result = (double)valueOne / valueTwo;
+                            Program.VideoFrameRate = (int)Math.Round(result);
                         }
 
                         if (e.Data.Contains("nb_read_frames"))

@@ -15,6 +15,7 @@ namespace BadAppleCMD.Screens
             if ((bool)ClearConsole) Console.Clear();
             Console.SetCursorPosition((Console.WindowWidth - MainString.Length) / 2, Console.WindowHeight / 2 - 3);
             Console.WriteLine(MainString);
+            if ((Console.WindowWidth - SecondString.Length) < 0) SecondString = Path.GetFileName(SecondString);
             Console.SetCursorPosition((Console.WindowWidth - SecondString.Length) / 2, Console.WindowHeight / 2);
             Console.WriteLine(SecondString);
         }
