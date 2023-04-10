@@ -129,8 +129,7 @@ namespace BadAppleCMD.Logic
         private void OnTimedEvent(object source, ElapsedEventArgs e)
         {
             FPSstring = $"FPS: {FPScounter}";
-            //todo do we need use videoaudiodesync?
-            if (FPScounter < Program.VideoFrameRate && !VideoAudioDesync) VideoAudioDesync = true;
+            if (FPScounter < Program.VideoFrameRate && !VideoAudioDesync && ShowFPSCounter) VideoAudioDesync = true;
             else if (VideoAudioDesync) FPSstring += " - Video desynced!";
             FPScounter = 0;
         }

@@ -215,7 +215,7 @@ namespace BadAppleCMD.Screens
                 }
 
                 if (breakout) break;
-                var key = Console.ReadKey(false).Key;
+                var key = Console.ReadKey(true).Key;
                 switch (key)
                 {
                     case ConsoleKey.UpArrow:
@@ -262,7 +262,7 @@ namespace BadAppleCMD.Screens
             }
             else if (SelectedItem == 5)
             {
-                InputScreen(videoplayer, "Edit file extension");
+                InputScreen("Edit file extension");
             }
             else
             {
@@ -270,23 +270,50 @@ namespace BadAppleCMD.Screens
             }
         }
 
-        //todo make
-        public void InputScreen(Videoplayer videoplayer, string MainString)
+        public void InputScreen(string MainString)
         {
-            bool breakout = true;
+            bool breakout = false;
 
             Console.BackgroundColor = ConsoleColor.DarkBlue;
             Console.Clear();
-            string SecondString = " [" + "                    " + "]";
-
-            while (breakout)
+            string SecondString = "[" + "                    " + "]";
+            string explanation = "ENTER to save - ESCAPE to quit without saving";
+            string fileExtension = Program.FrameFileExtension;
+            while (!breakout)
             {
                 Console.SetCursorPosition((Console.WindowWidth - MainString.Length) / 2, Console.WindowHeight / 2 - 3);
                 Console.WriteLine(MainString);
+
                 Console.SetCursorPosition((Console.WindowWidth - SecondString.Length) / 2, Console.WindowHeight / 2);
+                int split = (20 - fileExtension.Length) / 2;
+                SecondString = "[" + fileExtension.PadLeft(split + fileExtension.Length).PadRight(20) + "]";
                 Console.WriteLine(SecondString);
-                Console.SetCursorPosition((Console.WindowWidth - SecondString.Length) / 2 + (Program.FrameFileExtension.Length / 2), Console.WindowHeight / 2);
-                Console.Write(Program.FrameFileExtension);
+
+                Console.SetCursorPosition((Console.WindowWidth - explanation.Length) / 2, Console.WindowHeight / 2 + 2);
+                Console.WriteLine(explanation);
+
+                var key = Console.ReadKey(true).Key;
+                switch (key)
+                {
+                    case ConsoleKey.Enter:
+                        breakout = true;
+                        Program.FrameFileExtension = fileExtension;
+                        break;
+                    case ConsoleKey.Escape:
+                        breakout = true;
+                        break;
+                    case ConsoleKey.Backspace:
+                        if (fileExtension.Length > 0) fileExtension = fileExtension.Remove(fileExtension.Length - 1);
+                        break;
+                    case ConsoleKey.Delete:
+                        if (fileExtension.Length > 0) fileExtension = fileExtension.Remove(fileExtension.Length - 1);
+                        break;
+                    case ConsoleKey.Spacebar:
+                        break;
+                    default:
+                        if (fileExtension.Length < 20) fileExtension += key;
+                        break;
+                }
             }
         }
     }

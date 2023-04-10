@@ -84,7 +84,7 @@
                 Console.SetCursorPosition((Console.WindowWidth) / 2 + 8, Console.WindowHeight / 2 + 5);
                 Console.Write("Settings");
 
-                var key = Console.ReadKey(false).Key;
+                var key = Console.ReadKey(true).Key;
                 switch (key)
                 {
                     case ConsoleKey.LeftArrow:
