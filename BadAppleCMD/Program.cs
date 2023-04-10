@@ -6,7 +6,6 @@ namespace BadAppleCMD
 {
     public class Program
     {
-        //todo check if ffmpeg and ffprobe exists
         private static PlatformInvoke PInvoke = new();
         private static FFmpeg FFmpegExecution = new();
         private static Videoplayer VideoPlayer = new();
@@ -90,9 +89,16 @@ namespace BadAppleCMD
             Console.CursorVisible = false;
             WorkPath = Path.GetDirectoryName(AppContext.BaseDirectory);
 
+            if (!File.Exists(".\\ffmpeg.exe") && !File.Exists(".\\ffprobe.exe"))
+            {
+                LoadingScreens.WriteScreen(ConsoleColor.DarkRed, "Missing requisites", "FFmpeg and FFprobe are required to run BadApplePrompt");
+                Thread.Sleep(5000);
+                Environment.Exit(0);
+            }
+
             if (args.Length != 0)
             {
-                //todo check if this works and add fpscounter and other options
+                //todo check if this works
                 for (int i = 0; i < args.Length; i++)
                 {
                     string argument = args[i];
@@ -112,6 +118,18 @@ namespace BadAppleCMD
                     if (argument.Equals("-AutoStart"))
                     {
                         AutoStart = true;
+                    }
+                    if (argument.Equals("-Resize"))
+                    {
+                        Resize = false;
+                    }
+                    if (argument.Equals("-ConvertBlackWhite"))
+                    {
+                        BlackWhite = true;
+                    }
+                    if (argument.Equals("-FPSCounter"))
+                    {
+                        VideoPlayer.ShowFPSCounter = false;
                     }
                 }
 
