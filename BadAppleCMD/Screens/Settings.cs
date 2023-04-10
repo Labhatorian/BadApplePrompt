@@ -11,7 +11,7 @@ namespace BadAppleCMD.Screens
             set
             {
                 if (value <= 0) _SelectedItem = 0;
-                else if (value >= 7) _SelectedItem = 7;
+                else if (value >= 9) _SelectedItem = 9;
                 else _SelectedItem = value;
             }
         }
@@ -40,7 +40,6 @@ namespace BadAppleCMD.Screens
             "       `doooooooob dooooooob'\r\n" +
             "         `\"\"\"\"\"\"\"' `\"\"\"\"\"\"'";
 
-        //todo improve
         public void SettingsPage(Videoplayer videoplayer)
         {
             bool breakout = false;
@@ -107,14 +106,27 @@ namespace BadAppleCMD.Screens
                 Console.SetCursorPosition(2, 12);
                 if (SelectedItem == 6) Menu.Selected();
                 Console.Write("[FPS Counter] = ");
-                Console.Write(" [" + (videoplayer.ShowFPSCounter ? " " : "█") + "]");
+                Console.Write(" [" + (videoplayer.ShowFPSCounter ? "█" : " ") + "]");
 
                 Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 14);
+                Console.Write("[Convert option]");
+
+                Console.SetCursorPosition(2, 15);
                 if (SelectedItem == 7) Menu.Selected();
+                Console.Write(" Resize frames = [" + (Program.Resize ? "█]" : " ] - Factor options ignored"));
+
+                Menu.NotSelected();
+
+                Console.SetCursorPosition(2, 16);
+                if (SelectedItem == 8) Menu.Selected();
+                Console.Write(" Convert to black&white = [" + (Program.BlackWhite ? "█" : " ") + "]");
+
+                Console.SetCursorPosition(2, 18);
+                if (SelectedItem == 9) Menu.Selected();
                 Console.Write("[Verbose mode] = ");
-                Console.Write(" [" + (Program.Verbose ? " " : "█") + "]");
+                Console.Write(" [" + (Program.Verbose ? "█" : " ") + "]");
 
                 if (breakout) break;
                 var key = Console.ReadKey(true).Key;
@@ -151,6 +163,12 @@ namespace BadAppleCMD.Screens
                                 videoplayer.ShowFPSCounter = !videoplayer.ShowFPSCounter;
                                 break;
                             case 7:
+                                Program.Resize = !Program.Resize;
+                                break;
+                            case 8:
+                                Program.BlackWhite = !Program.BlackWhite;
+                                break;
+                            case 9:
                                 Program.Verbose = !Program.Verbose;
                                 break;
                         }

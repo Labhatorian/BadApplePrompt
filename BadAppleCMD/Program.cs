@@ -6,7 +6,7 @@ namespace BadAppleCMD
 {
     public class Program
     {
-        //check if ffmpeg and ffprobe exists
+        //todo check if ffmpeg and ffprobe exists
         private static PlatformInvoke PInvoke = new();
         private static FFmpeg FFmpegExecution = new();
         private static Videoplayer VideoPlayer = new();
@@ -17,8 +17,10 @@ namespace BadAppleCMD
         //todo clear this out for release
         private static string FilePath = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0-windows\\win-x64\\Badapple.mp4";
         private static string WorkPath = "";
-        public static string FrameFileExtension = "JPEG";
+        public static string FrameFileExtension = "PNG";
         public static bool Verbose = false;
+        public static bool Resize = true;
+        public static bool BlackWhite = false;
         public static bool AutoStart = false;
 
         public static int VideoWidth { get; set; }
@@ -66,10 +68,13 @@ namespace BadAppleCMD
             FFmpegExecution.GetVideoFrames(FilePath, WorkPath, FrameFileExtension);
             FFmpegExecution.GetAudio(FilePath, WorkPath);
 
-            Task task = Task.Run(() => { VideoPlayer.ResizeFrames(WorkPath); });
-            LoadingScreens.LoadingFinished = false;
-            LoadingScreens.InformationOrLoadingBar(ConsoleColor.DarkBlue, "Resizing frames", false);
-            task.Wait();
+            if (Resize)
+            {
+                Task task = Task.Run(() => { VideoPlayer.ConvertFrames(WorkPath); });
+                LoadingScreens.LoadingFinished = false;
+                LoadingScreens.InformationOrLoadingBar(ConsoleColor.DarkBlue, "Converting frames...", false);
+                task.Wait();
+            }
 
             VideoPlayer.PrepareConsole(WorkPath);
             Console.Title = "Now Playing: " + Path.GetFileName(FilePath);
@@ -87,7 +92,7 @@ namespace BadAppleCMD
 
             if (args.Length != 0)
             {
-                //todo check if this works and add fpscounter
+                //todo check if this works and add fpscounter and other options
                 for (int i = 0; i < args.Length; i++)
                 {
                     string argument = args[i];
