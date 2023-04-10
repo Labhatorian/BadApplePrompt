@@ -115,13 +115,15 @@ namespace BadAppleCMD.Screens
 
                 Console.SetCursorPosition(2, 15);
                 if (SelectedItem == 7) Menu.Selected();
-                Console.Write(" Resize frames = [" + (Program.Resize ? "█]" : " ] - Factor options ignored"));
+                Console.Write(" Resize frames          = [" + (Program.Resize ? "█]" : " ] - Factor options ignored"));
 
                 Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 16);
                 if (SelectedItem == 8) Menu.Selected();
                 Console.Write(" Convert to black&white = [" + (Program.BlackWhite ? "█" : " ") + "]");
+
+                Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 18);
                 if (SelectedItem == 9) Menu.Selected();
