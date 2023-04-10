@@ -6,6 +6,7 @@ namespace BadAppleCMD
 {
     public class Program
     {
+        //check if ffmpeg and ffprobe exists
         private static PlatformInvoke PInvoke = new();
         private static FFmpeg FFmpegExecution = new();
         private static Videoplayer VideoPlayer = new();
@@ -14,7 +15,7 @@ namespace BadAppleCMD
         private static Settings SettingsMenu = new();
 
         //todo clear this out for release
-        private static string FilePath = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0-windows10.0.22621.0\\win-x64\\Badapple.mp4";
+        private static string FilePath = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0-windows\\win-x64\\Badapple.mp4";
         private static string WorkPath = "";
         public static string FrameFileExtension = "JPEG";
         public static bool Verbose = false;
@@ -86,7 +87,7 @@ namespace BadAppleCMD
 
             if (args.Length != 0)
             {
-                //todo checks
+                //todo check if this works and add fpscounter
                 for (int i = 0; i < args.Length; i++)
                 {
                     string argument = args[i];
@@ -131,19 +132,19 @@ namespace BadAppleCMD
 
         private static string SelectFileDialog()
         {
-            using (OpenFileDialog openFileDialog = new OpenFileDialog())
-            {
-                openFileDialog.InitialDirectory = WorkPath;
-                openFileDialog.Filter = "All Video Media Files|*.wmv;*.avi;*.mpg;*.mpeg;*.m1v;*.mpe;*.mp4;*.mov;*.3g2;*.3gp2;*.3gp;*.3gpp;*.m4a;*.mkv;*.WMV;*.AVI;*.MPG;*.MPEG;*.M1V;*.MPE;*.MP4;*.MOV;*.3G2;*.3GP2;*.3GP;*.3GPP;*.M4A;*.MKV;";
-                openFileDialog.FilterIndex = 2;
-                openFileDialog.RestoreDirectory = true;
+            //using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            //{
+            //    openFileDialog.InitialDirectory = WorkPath;
+            //    openFileDialog.Filter = "All Video Media Files|*.wmv;*.avi;*.mpg;*.mpeg;*.m1v;*.mpe;*.mp4;*.mov;*.3g2;*.3gp2;*.3gp;*.3gpp;*.m4a;*.mkv;*.WMV;*.AVI;*.MPG;*.MPEG;*.M1V;*.MPE;*.MP4;*.MOV;*.3G2;*.3GP2;*.3GP;*.3GPP;*.M4A;*.MKV;";
+            //    openFileDialog.FilterIndex = 2;
+            //    openFileDialog.RestoreDirectory = true;
 
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    //Get the path of specified file
-                    return openFileDialog.FileName;
-                }
-            }
+            //    if (openFileDialog.ShowDialog() == DialogResult.OK)
+            //    {
+            //        //Get the path of specified file
+            //        return openFileDialog.FileName;
+            //    }
+            //}
             return null;
         }
 
