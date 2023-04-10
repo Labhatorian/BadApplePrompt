@@ -1,5 +1,4 @@
 ﻿using BadAppleCMD.Screens;
-using System.Drawing.Imaging;
 using System.Media;
 using System.Text;
 using System.Timers;
@@ -41,8 +40,12 @@ namespace BadAppleCMD.Logic
                 if (FPScounter != Program.VideoFrameRate)
                 {
                     Console.Write(Buffer);
-                    using (Bitmap image = new(WorkingPath + $"\\temp\\{TotalFrameCounter + 1:00000000}.png")) Buffer = ConvertToAscii(image);
-                    File.Delete(WorkingPath + $"\\temp\\{TotalFrameCounter:00000000}.png");
+                    try
+                    {
+                        using (Bitmap image = new(WorkingPath + $"\\temp\\{TotalFrameCounter + 1:00000000}." + Program.FrameFileExtension)) Buffer = ConvertToAscii(image);
+                        File.Delete(WorkingPath + $"\\temp\\{TotalFrameCounter:00000000}." + Program.FrameFileExtension);
+                    }
+                    catch (Exception) { } //ignore
                     Thread.Sleep(SleepFor);
                     Console.SetCursorPosition(0, 0);
                     TotalFrameCounter++;
@@ -54,9 +57,9 @@ namespace BadAppleCMD.Logic
         public void PrepareConsole(string WorkingPath)
         {
             //Display first frame to size window correctly and save in buffer for later
-            using (Bitmap image = new(WorkingPath + $"\\temp\\{1:00000000}.png")) Buffer = ConvertToAscii(image);
+            using (Bitmap image = new(WorkingPath + $"\\temp\\{1:00000000}." + Program.FrameFileExtension)) Buffer = ConvertToAscii(image);
             Console.Write(Buffer);
-            File.Delete(WorkingPath + $"\\temp\\{1:00000000}.png");
+            File.Delete(WorkingPath + $"\\temp\\{1:00000000}." + Program.FrameFileExtension);
             TotalFrameCounter++;
 
             //Prevents crashing of too big of a window
@@ -70,17 +73,18 @@ namespace BadAppleCMD.Logic
             Console.Clear();
         }
 
-        public void ResizeFrames(string WorkingPath)
+        public void ConvertFrames(string WorkingPath)
         {
             TotalFileCount = Directory.GetFiles(WorkingPath + "/temp", "*", SearchOption.TopDirectoryOnly).Length;
 
             LoadingScreens.Total = TotalFileCount.ToString();
+            TotalFrameCounter = 1;
             while (TotalFrameCounter < TotalFileCount)
             {
                 LoadingScreens.Current = TotalFrameCounter.ToString();
                 Bitmap resizedImage;
                 using (Bitmap image = new(WorkingPath + $"\\temp\\{TotalFrameCounter:00000000}." + Program.FrameFileExtension)) resizedImage = new(image, new Size(image.Width / ResizeFactor, image.Height / ResizeFactor));
-                resizedImage.Save(WorkingPath + $"\\temp\\{TotalFrameCounter:00000000}.png", ImageFormat.Png);
+                resizedImage.Save(WorkingPath + $"\\temp\\{TotalFrameCounter:00000000}." + Program.FrameFileExtension);
                 TotalFrameCounter++;
             }
             LoadingScreens.LoadingFinished = true;
