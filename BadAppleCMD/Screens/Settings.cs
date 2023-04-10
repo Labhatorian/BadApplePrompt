@@ -10,18 +10,9 @@ namespace BadAppleCMD.Screens
             get => _SelectedItem;
             set
             {
-                if (value <= 0)
-                {
-                    _SelectedItem = 0;
-                }
-                else if (value >= 7)
-                {
-                    _SelectedItem = 7;
-                }
-                else
-                {
-                    _SelectedItem = value;
-                }
+                if (value <= 0) _SelectedItem = 0;
+                else if (value >= 7) _SelectedItem = 7;
+                else _SelectedItem = value;
             }
         }
 
@@ -54,8 +45,7 @@ namespace BadAppleCMD.Screens
         {
             bool breakout = false;
 
-            Console.BackgroundColor = ConsoleColor.DarkBlue;
-            Console.ForegroundColor = ConsoleColor.White;
+            Menu.NotSelected();
             Console.Title = "BadApplePrompt - Settings";
             Console.Clear();
 
@@ -68,151 +58,63 @@ namespace BadAppleCMD.Screens
 
             while (true)
             {
-                Console.BackgroundColor = ConsoleColor.DarkBlue;
-                Console.ForegroundColor = ConsoleColor.White;
+                Menu.NotSelected();
 
                 Console.SetCursorPosition(0, 0);
-                if (SelectedItem == 0)
-                {
-                    Console.BackgroundColor = ConsoleColor.White;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                }
+                if (SelectedItem == 0) Menu.Selected();
                 Console.Write("<= Return to menu");
 
-                Console.BackgroundColor = ConsoleColor.DarkBlue;
-                Console.ForegroundColor = ConsoleColor.White;
+                Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 3);
                 Console.Write("[Video sizedown factor]");
 
-                Console.BackgroundColor = ConsoleColor.DarkBlue;
-                Console.ForegroundColor = ConsoleColor.White;
-
                 Console.SetCursorPosition(2, 4);
-                if (SelectedItem == 1)
-                {
-                    Console.BackgroundColor = ConsoleColor.White;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                }
-                if (videoplayer.ResizeFactor != 2)
-                {
-                    Console.Write(" [ ] 2x");
-                }
-                else
-                {
-                    Console.Write(" [█] 2x");
-                }
+                if (SelectedItem == 1) Menu.Selected();
+                Console.Write(" [" + (videoplayer.ResizeFactor != 2 ? " " : "█") + "] 2x");
 
-                Console.BackgroundColor = ConsoleColor.DarkBlue;
-                Console.ForegroundColor = ConsoleColor.White;
+                Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 5);
-                if (SelectedItem == 2)
-                {
-                    Console.BackgroundColor = ConsoleColor.White;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                }
-                if (videoplayer.ResizeFactor != 4)
-                {
-                    Console.Write(" [ ] 4x");
-                }
-                else
-                {
-                    Console.Write(" [█] 4x");
-                }
+                if (SelectedItem == 2) Menu.Selected();
+                Console.Write(" [" + (videoplayer.ResizeFactor != 4 ? " " : "█") + "] 4x");
 
-                Console.BackgroundColor = ConsoleColor.DarkBlue;
-                Console.ForegroundColor = ConsoleColor.White;
+                Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 6);
-                if (SelectedItem == 3)
-                {
-                    Console.BackgroundColor = ConsoleColor.White;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                }
-                if (videoplayer.ResizeFactor != 8)
-                {
-                    Console.Write(" [ ] 8x");
-                }
-                else
-                {
-                    Console.Write(" [█] 8x");
-                }
+                if (SelectedItem == 3) Menu.Selected();
+                Console.Write(" [" + (videoplayer.ResizeFactor != 8 ? " " : "█") + "] 8x");
 
-                Console.BackgroundColor = ConsoleColor.DarkBlue;
-                Console.ForegroundColor = ConsoleColor.White;
+                Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 7);
-                if (SelectedItem == 4)
-                {
-                    Console.BackgroundColor = ConsoleColor.White;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                }
-                if (videoplayer.ResizeFactor != 16)
-                {
-                    Console.Write(" [ ] 16x");
-                }
-                else
-                {
-                    Console.Write(" [█] 16x");
-                }
+                if (SelectedItem == 4) Menu.Selected();
+                Console.Write(" [" + (videoplayer.ResizeFactor != 16 ? " " : "█") + "] 16x");
 
-                Console.BackgroundColor = ConsoleColor.DarkBlue;
-                Console.ForegroundColor = ConsoleColor.White;
+                Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 9);
                 Console.Write("[Temp. frames file ext.]");
 
-                Console.BackgroundColor = ConsoleColor.DarkBlue;
-                Console.ForegroundColor = ConsoleColor.White;
-
                 Console.SetCursorPosition(2, 10);
-                if (SelectedItem == 5)
-                {
-                    Console.BackgroundColor = ConsoleColor.White;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                }
+                if (SelectedItem == 5) Menu.Selected();
                 Console.Write(" [" + "                    " + "]");
                 Console.SetCursorPosition(4 + 20 / 2 - (Program.FrameFileExtension.Length / 2), 10);
                 Console.Write(Program.FrameFileExtension);
 
-                Console.BackgroundColor = ConsoleColor.DarkBlue;
-                Console.ForegroundColor = ConsoleColor.White;
+                Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 12);
-                if (SelectedItem == 6)
-                {
-                    Console.BackgroundColor = ConsoleColor.White;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                }
+                if (SelectedItem == 6) Menu.Selected();
                 Console.Write("[FPS Counter] = ");
-                if (videoplayer.ShowFPSCounter)
-                {
-                    Console.Write("[█]");
-                }
-                else
-                {
-                    Console.Write("[ ]");
-                }
+                Console.Write(" [" + (videoplayer.ShowFPSCounter ? " " : "█") + "]");
 
-                Console.BackgroundColor = ConsoleColor.DarkBlue;
-                Console.ForegroundColor = ConsoleColor.White;
+                Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 14);
-                if (SelectedItem == 7)
-                {
-                    Console.BackgroundColor = ConsoleColor.White;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                }
+                if (SelectedItem == 7) Menu.Selected();
                 Console.Write("[Verbose mode] = ");
-                if (Program.Verbose)
-                {
-                    Console.Write("[█]");
-                }
-                else
-                {
-                    Console.Write("[ ]");
-                }
+                Console.Write(" [" + (Program.Verbose ? " " : "█") + "]");
 
                 if (breakout) break;
                 var key = Console.ReadKey(true).Key;
@@ -256,18 +158,9 @@ namespace BadAppleCMD.Screens
                 }
             }
 
-            if (SelectedItem == 0)
-            {
-                return;
-            }
-            else if (SelectedItem == 5)
-            {
-                InputScreen("Edit file extension");
-            }
-            else
-            {
-                SettingsPage(videoplayer);
-            }
+            if (SelectedItem == 0) return;
+            else if (SelectedItem == 5) InputScreen("Edit file extension");
+            else SettingsPage(videoplayer);
         }
 
         public void InputScreen(string MainString)
@@ -276,7 +169,6 @@ namespace BadAppleCMD.Screens
 
             Console.BackgroundColor = ConsoleColor.DarkBlue;
             Console.Clear();
-            string SecondString = "[" + "                    " + "]";
             string explanation = "ENTER to save - ESCAPE to quit without saving";
             string fileExtension = Program.FrameFileExtension;
             while (!breakout)
@@ -284,9 +176,9 @@ namespace BadAppleCMD.Screens
                 Console.SetCursorPosition((Console.WindowWidth - MainString.Length) / 2, Console.WindowHeight / 2 - 3);
                 Console.WriteLine(MainString);
 
-                Console.SetCursorPosition((Console.WindowWidth - SecondString.Length) / 2, Console.WindowHeight / 2);
+                Console.SetCursorPosition((Console.WindowWidth - 22) / 2, Console.WindowHeight / 2);
                 int split = (20 - fileExtension.Length) / 2;
-                SecondString = "[" + fileExtension.PadLeft(split + fileExtension.Length).PadRight(20) + "]";
+                string SecondString = "[" + fileExtension.PadLeft(split + fileExtension.Length).PadRight(20) + "]";
                 Console.WriteLine(SecondString);
 
                 Console.SetCursorPosition((Console.WindowWidth - explanation.Length) / 2, Console.WindowHeight / 2 + 2);

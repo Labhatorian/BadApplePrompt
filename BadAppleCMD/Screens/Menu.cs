@@ -8,18 +8,9 @@
             get => _SelectedItem;
             set
             {
-                if (value <= 0)
-                {
-                    _SelectedItem = 0;
-                }
-                else if (value >= 1)
-                {
-                    _SelectedItem = 1;
-                }
-                else
-                {
-                    _SelectedItem = value;
-                }
+                if (value <= 0) _SelectedItem = 0;
+                else if (value >= 1) _SelectedItem = 1;
+                else _SelectedItem = value;
             }
         }
 
@@ -40,20 +31,12 @@
         {
             while (true)
             {
-                Console.BackgroundColor = ConsoleColor.DarkBlue;
-                Console.ForegroundColor = ConsoleColor.White;
+                NotSelected();
                 Console.Title = "BadApplePrompt";
                 Console.Clear();
 
                 string[] LogoSplit = Logo.Split("\n");
-                if (SelectedItem == 0)
-                {
-                    Console.ForegroundColor = ConsoleColor.White;
-                }
-                else if (SelectedItem == 1)
-                {
-                    Console.ForegroundColor = ConsoleColor.Black;
-                }
+                Console.ForegroundColor = (SelectedItem == 0) ? ConsoleColor.White : ConsoleColor.Black;
 
                 for (int i = 0; i < LogoSplit.Length; i++)
                 {
@@ -61,25 +44,15 @@
                     Console.Write(LogoSplit[i]);
                 }
 
-                Console.BackgroundColor = ConsoleColor.DarkBlue;
-                Console.ForegroundColor = ConsoleColor.White;
+                NotSelected();
 
                 Console.SetCursorPosition((Console.WindowWidth) / 2 - 15, Console.WindowHeight / 2 + 5);
-                if (SelectedItem == 0)
-                {
-                    Console.BackgroundColor = ConsoleColor.White;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                }
+                if (SelectedItem == 0) Selected();
                 Console.Write("Play");
 
-                Console.BackgroundColor = ConsoleColor.DarkBlue;
-                Console.ForegroundColor = ConsoleColor.White;
+                NotSelected();
 
-                if (SelectedItem == 1)
-                {
-                    Console.BackgroundColor = ConsoleColor.White;
-                    Console.ForegroundColor = ConsoleColor.Black;
-                }
+                if (SelectedItem == 1) Selected();
 
                 Console.SetCursorPosition((Console.WindowWidth) / 2 + 8, Console.WindowHeight / 2 + 5);
                 Console.Write("Settings");
@@ -97,6 +70,17 @@
                         return SelectedItem;
                 }
             }
+        }
+        public static void NotSelected()
+        {
+            Console.BackgroundColor = ConsoleColor.DarkBlue;
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        public static void Selected()
+        {
+            Console.BackgroundColor = ConsoleColor.White;
+            Console.ForegroundColor = ConsoleColor.Black;
         }
     }
 }

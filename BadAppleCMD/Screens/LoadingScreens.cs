@@ -26,14 +26,8 @@ namespace BadAppleCMD.Screens
             {
                 StringBuilder loadingbar = new("[");
 
-                if (!Information)
-                {
-                    LoadingBar(loadingbar);
-                }
-                else
-                {
-                    InformationBar(loadingbar);
-                }
+                if (!Information) LoadingBar(loadingbar);
+                else InformationBar(loadingbar);
 
                 loadingbar.Append(']');
                 WriteScreen(BackgroundColour, MainString, loadingbar.ToString(), false);
@@ -62,14 +56,8 @@ namespace BadAppleCMD.Screens
                     loadingbar.Append('█');
                     totalBars--;
                 }
-                else
-                {
-                    loadingbar.Append(' ');
-                }
-                if (i != 20)
-                {
-                    loadingbar.Append('|');
-                }
+                else loadingbar.Append(' ');
+                if (i != 20) loadingbar.Append('|');
             }
         }
 
