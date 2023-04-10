@@ -1,4 +1,5 @@
 ﻿using BadAppleCMD.Logic;
+using System.Text.RegularExpressions;
 
 namespace BadAppleCMD.Screens
 {
@@ -11,7 +12,7 @@ namespace BadAppleCMD.Screens
             set
             {
                 if (value <= 0) _SelectedItem = 0;
-                else if (value >= 9) _SelectedItem = 9;
+                else if (value >= 10) _SelectedItem = 10;
                 else _SelectedItem = value;
             }
         }
@@ -92,41 +93,48 @@ namespace BadAppleCMD.Screens
 
                 Menu.NotSelected();
 
-                Console.SetCursorPosition(2, 9);
-                Console.Write("[Temp. frames file ext.]");
+                Console.SetCursorPosition(2, 8);
+                if (SelectedItem == 5) Menu.Selected();
+                Console.Write(" [" + ((videoplayer.ResizeFactor == 2 || videoplayer.ResizeFactor == 4 || videoplayer.ResizeFactor == 8
+                    || videoplayer.ResizeFactor == 16) ? " ] __x" : "█] " + videoplayer.ResizeFactor + "x"));
+
+                Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 10);
-                if (SelectedItem == 5) Menu.Selected();
+                Console.Write("[Temp. frames file ext.]");
+
+                Console.SetCursorPosition(2, 11);
+                if (SelectedItem == 6) Menu.Selected();
                 Console.Write(" [" + "                    " + "]");
-                Console.SetCursorPosition(4 + 20 / 2 - (Program.FrameFileExtension.Length / 2), 10);
+                Console.SetCursorPosition(4 + 20 / 2 - (Program.FrameFileExtension.Length / 2), 11);
                 Console.Write(Program.FrameFileExtension);
 
                 Menu.NotSelected();
 
-                Console.SetCursorPosition(2, 12);
-                if (SelectedItem == 6) Menu.Selected();
+                Console.SetCursorPosition(2, 13);
+                if (SelectedItem == 7) Menu.Selected();
                 Console.Write("[FPS Counter] = ");
                 Console.Write(" [" + (videoplayer.ShowFPSCounter ? "█" : " ") + "]");
 
                 Menu.NotSelected();
 
-                Console.SetCursorPosition(2, 14);
-                Console.Write("[Convert option]");
-
                 Console.SetCursorPosition(2, 15);
-                if (SelectedItem == 7) Menu.Selected();
-                Console.Write(" Resize frames          = [" + (Program.Resize ? "█]" : " ] - Factor options ignored"));
-
-                Menu.NotSelected();
+                Console.Write("[Convert option]");
 
                 Console.SetCursorPosition(2, 16);
                 if (SelectedItem == 8) Menu.Selected();
+                Console.Write(" Resize frames          = [" + (Program.Resize ? "█" : " ") + "]");
+
+                Menu.NotSelected();
+
+                Console.SetCursorPosition(2, 17);
+                if (SelectedItem == 9) Menu.Selected();
                 Console.Write(" Convert to black&white = [" + (Program.BlackWhite ? "█" : " ") + "]");
 
                 Menu.NotSelected();
 
-                Console.SetCursorPosition(2, 18);
-                if (SelectedItem == 9) Menu.Selected();
+                Console.SetCursorPosition(2, 19);
+                if (SelectedItem == 10) Menu.Selected();
                 Console.Write("[Verbose mode] = ");
                 Console.Write(" [" + (Program.Verbose ? "█" : " ") + "]");
 
@@ -162,15 +170,18 @@ namespace BadAppleCMD.Screens
                                 breakout = true;
                                 break;
                             case 6:
-                                videoplayer.ShowFPSCounter = !videoplayer.ShowFPSCounter;
+                                breakout = true;
                                 break;
                             case 7:
-                                Program.Resize = !Program.Resize;
+                                videoplayer.ShowFPSCounter = !videoplayer.ShowFPSCounter;
                                 break;
                             case 8:
-                                Program.BlackWhite = !Program.BlackWhite;
+                                Program.Resize = !Program.Resize;
                                 break;
                             case 9:
+                                Program.BlackWhite = !Program.BlackWhite;
+                                break;
+                            case 10:
                                 Program.Verbose = !Program.Verbose;
                                 break;
                         }
@@ -179,11 +190,12 @@ namespace BadAppleCMD.Screens
             }
 
             if (SelectedItem == 0) return;
-            else if (SelectedItem == 5) InputScreen("Edit file extension");
+            else if (SelectedItem == 5) InputScreenFactor(videoplayer, "Custom resize factor");
+            else if (SelectedItem == 6) InputScreenExtension(videoplayer, "Edit file extension");
             else SettingsPage(videoplayer);
         }
 
-        public void InputScreen(string MainString)
+        public void InputScreenExtension(Videoplayer videoplayer, string MainString)
         {
             bool breakout = false;
 
@@ -227,6 +239,56 @@ namespace BadAppleCMD.Screens
                         break;
                 }
             }
+            SettingsPage(videoplayer);
+        }
+
+        //todo merge some code that are the same
+        public void InputScreenFactor(Videoplayer videoplayer, string MainString)
+        {
+            bool breakout = false;
+
+            Console.BackgroundColor = ConsoleColor.DarkBlue;
+            Console.Clear();
+            string explanation = "ENTER to save - ESCAPE to quit without saving";
+            string factor = videoplayer.ResizeFactor.ToString();
+            while (!breakout)
+            {
+                Console.SetCursorPosition((Console.WindowWidth - MainString.Length) / 2, Console.WindowHeight / 2 - 3);
+                Console.WriteLine(MainString);
+
+                Console.SetCursorPosition((Console.WindowWidth - 4) / 2, Console.WindowHeight / 2);
+                int split = (2 - factor.Length) / 2;
+                string SecondString = "[" + factor.PadLeft(split + factor.Length).PadRight(2) + "]";
+                Console.WriteLine(SecondString);
+
+                Console.SetCursorPosition((Console.WindowWidth - explanation.Length) / 2, Console.WindowHeight / 2 + 2);
+                Console.WriteLine(explanation);
+
+                ConsoleKey key = Console.ReadKey(true).Key;
+                switch (key)
+                {
+                    case ConsoleKey.Enter:
+                        breakout = true;
+                        videoplayer.ResizeFactor = int.Parse(factor);
+                        break;
+                    case ConsoleKey.Escape:
+                        breakout = true;
+                        break;
+                    case ConsoleKey.Backspace:
+                        if (factor.Length > 0) factor = factor.Remove(factor.Length - 1);
+                        break;
+                    case ConsoleKey.Delete:
+                        if (factor.Length > 0) factor = factor.Remove(factor.Length - 1);
+                        break;
+                    case ConsoleKey.Spacebar:
+                        break;
+                    default:
+                        string keyToEnter = key.ToString().TrimStart('D');
+                        if (factor.Length < 2 && Regex.IsMatch(keyToEnter, @"^[0-9]+$")) factor += keyToEnter;
+                        break;
+                }
+            }
+            SettingsPage(videoplayer);
         }
     }
 }

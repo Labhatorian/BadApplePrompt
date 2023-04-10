@@ -13,8 +13,7 @@ namespace BadAppleCMD
         private static Menu MainMenu = new();
         private static Settings SettingsMenu = new();
 
-        //todo clear this out for release
-        private static string FilePath = "C:\\Users\\Harris\\source\\repos\\BadAppleCMD\\BadAppleCMD\\bin\\Debug\\net6.0-windows\\win-x64\\Badapple.mp4";
+        private static string FilePath = "";
         private static string WorkPath = "";
         public static string FrameFileExtension = "PNG";
         public static bool Verbose = false;
@@ -131,11 +130,9 @@ namespace BadAppleCMD
             else
             {
                 LoadingScreens.WriteScreen(ConsoleColor.DarkRed, "No file has been provided", "Select a videofile or quit");
-                //FilePath = SelectFileDialog();
-                //if (FilePath is null) Environment.Exit(0);
+                FilePath = SelectFileDialog();
+                if (FilePath is null) Environment.Exit(0);
             }
-
-            //TODO filepath check, i dont remember for what
 
             //Make hidden temp folder. ffmpeg can not create one
             DeleteTemp();
