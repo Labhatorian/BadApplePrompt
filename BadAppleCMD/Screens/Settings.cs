@@ -119,7 +119,7 @@ namespace BadAppleCMD.Screens
                 Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 15);
-                Console.Write("[Convert Value]");
+                Console.Write("[Convert options]");
 
                 Console.SetCursorPosition(2, 16);
                 if (SelectedItem == 8) Menu.Selected();
