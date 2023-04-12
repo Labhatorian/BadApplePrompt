@@ -27,6 +27,10 @@
             "                                              | $$      | $$                    \r\n" +
             "                                              |__/      |__/                    \r\n";
 
+        /// <summary>
+        /// Main menu with logo and two options: Play and Options
+        /// </summary>
+        /// <returns>Integer that indicates to start playing or go to options</returns>
         public int MainMenu()
         {
             while (true)
@@ -34,14 +38,13 @@
                 NotSelected();
                 Console.Title = "BadApplePrompt";
                 Console.Clear();
-
-                string[] LogoSplit = Logo.Split("\n");
+                string[] logoSplit = Logo.Split("\n");
                 Console.ForegroundColor = (SelectedItem == 0) ? ConsoleColor.White : ConsoleColor.Black;
 
-                for (int i = 0; i < LogoSplit.Length; i++)
+                for (int i = 0; i < logoSplit.Length; i++)
                 {
                     Console.SetCursorPosition((Console.WindowWidth) / 2 - 40, Console.WindowHeight / 2 - 12 + i);
-                    Console.Write(LogoSplit[i]);
+                    Console.Write(logoSplit[i]);
                 }
 
                 NotSelected();
@@ -72,12 +75,18 @@
             }
         }
 
+        /// <summary>
+        /// The following write code will be output in these colours to indicate it is not selected or is not selectable
+        /// </summary>
         public static void NotSelected()
         {
             Console.BackgroundColor = ConsoleColor.DarkBlue;
             Console.ForegroundColor = ConsoleColor.White;
         }
 
+        /// <summary>
+        /// The following write code will be output in these colours to indicate it is selected
+        /// </summary>
         public static void Selected()
         {
             Console.BackgroundColor = ConsoleColor.White;
