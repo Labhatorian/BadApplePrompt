@@ -41,7 +41,7 @@ namespace BadAppleCMD.Screens
             "       `doooooooob dooooooob'\r\n" +
             "         `\"\"\"\"\"\"\"' `\"\"\"\"\"\"'";
 
-        public void SettingsPage(Videoplayer videoplayer)
+        public void SettingsPage(Videoplayer VideoPlayer)
         {
             bool breakout = false;
 
@@ -49,11 +49,11 @@ namespace BadAppleCMD.Screens
             Console.Title = "BadApplePrompt - Settings";
             Console.Clear();
 
-            string[] AppleSplit = Apple.Split("\n");
-            for (int i = 0; i < AppleSplit.Length; i++)
+            string[] appleSplit = Apple.Split("\n");
+            for (int i = 0; i < appleSplit.Length; i++)
             {
                 Console.SetCursorPosition((Console.WindowWidth) - 37, 2 + i);
-                Console.Write(AppleSplit[i]);
+                Console.Write(appleSplit[i]);
             }
 
             while (true)
@@ -67,41 +67,41 @@ namespace BadAppleCMD.Screens
                 Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 3);
-                Console.Write("[Video sizedown option]");
-
+                Console.Write("[Video sizedown Value]");
+                #region Factors
                 Console.SetCursorPosition(2, 4);
                 if (SelectedItem == 1) Menu.Selected();
-                Console.Write(" [" + (videoplayer.ResizeFactor != 2 ? " " : "█") + "] 2x");
+                Console.Write(" [" + (VideoPlayer.ResizeFactor != 2 ? " " : "█") + "] 2x");
 
                 Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 5);
                 if (SelectedItem == 2) Menu.Selected();
-                Console.Write(" [" + (videoplayer.ResizeFactor != 4 ? " " : "█") + "] 4x");
+                Console.Write(" [" + (VideoPlayer.ResizeFactor != 4 ? " " : "█") + "] 4x");
 
                 Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 6);
                 if (SelectedItem == 3) Menu.Selected();
-                Console.Write(" [" + (videoplayer.ResizeFactor != 8 ? " " : "█") + "] 8x");
+                Console.Write(" [" + (VideoPlayer.ResizeFactor != 8 ? " " : "█") + "] 8x");
 
                 Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 7);
                 if (SelectedItem == 4) Menu.Selected();
-                Console.Write(" [" + (videoplayer.ResizeFactor != 16 ? " " : "█") + "] 16x");
+                Console.Write(" [" + (VideoPlayer.ResizeFactor != 16 ? " " : "█") + "] 16x");
 
                 Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 8);
                 if (SelectedItem == 5) Menu.Selected();
-                Console.Write(" [" + ((videoplayer.ResizeFactor == 2 || videoplayer.ResizeFactor == 4 || videoplayer.ResizeFactor == 8
-                    || videoplayer.ResizeFactor == 16) ? " ] __x" : "█] " + videoplayer.ResizeFactor + "x"));
+                Console.Write(" [" + ((VideoPlayer.ResizeFactor == 2 || VideoPlayer.ResizeFactor == 4 || VideoPlayer.ResizeFactor == 8
+                    || VideoPlayer.ResizeFactor == 16) ? " ] __x" : "█] " + VideoPlayer.ResizeFactor + "x"));
 
                 Menu.NotSelected();
-
+                #endregion
                 Console.SetCursorPosition(2, 10);
-                Console.Write("[Temp. frames file ext.]");
+                Console.Write("[Extracted frames exte.]");
 
                 Console.SetCursorPosition(2, 11);
                 if (SelectedItem == 6) Menu.Selected();
@@ -114,12 +114,12 @@ namespace BadAppleCMD.Screens
                 Console.SetCursorPosition(2, 13);
                 if (SelectedItem == 7) Menu.Selected();
                 Console.Write("[FPS Counter] = ");
-                Console.Write(" [" + (videoplayer.ShowFPSCounter ? "█" : " ") + "]");
+                Console.Write(" [" + (VideoPlayer.ShowFPSCounter ? "█" : " ") + "]");
 
                 Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 15);
-                Console.Write("[Convert option]");
+                Console.Write("[Convert Value]");
 
                 Console.SetCursorPosition(2, 16);
                 if (SelectedItem == 8) Menu.Selected();
@@ -155,16 +155,16 @@ namespace BadAppleCMD.Screens
                                 breakout = true;
                                 break;
                             case 1:
-                                videoplayer.ResizeFactor = 2;
+                                VideoPlayer.ResizeFactor = 2;
                                 break;
                             case 2:
-                                videoplayer.ResizeFactor = 4;
+                                VideoPlayer.ResizeFactor = 4;
                                 break;
                             case 3:
-                                videoplayer.ResizeFactor = 8;
+                                VideoPlayer.ResizeFactor = 8;
                                 break;
                             case 4:
-                                videoplayer.ResizeFactor = 16;
+                                VideoPlayer.ResizeFactor = 16;
                                 break;
                             case 5:
                                 breakout = true;
@@ -173,7 +173,7 @@ namespace BadAppleCMD.Screens
                                 breakout = true;
                                 break;
                             case 7:
-                                videoplayer.ShowFPSCounter = !videoplayer.ShowFPSCounter;
+                                VideoPlayer.ShowFPSCounter = !VideoPlayer.ShowFPSCounter;
                                 break;
                             case 8:
                                 Program.Resize = !Program.Resize;
@@ -190,16 +190,22 @@ namespace BadAppleCMD.Screens
             }
 
             if (SelectedItem == 0) return;
-            else if (SelectedItem == 5) InputScreenFactor(videoplayer, "Custom resize option");
-            else if (SelectedItem == 6) InputScreenExtension(videoplayer, "Edit file extension");
-            else SettingsPage(videoplayer);
+            else if (SelectedItem == 5) InputScreenFactor(VideoPlayer, "Custom sizedown Value");
+            else if (SelectedItem == 6) InputScreenExtension(VideoPlayer, "Edit file extension");
+            else SettingsPage(VideoPlayer);
         }
 
-        public void InputScreenExtension(Videoplayer videoplayer, string MainString)
+        /// <summary>
+        /// Input screen for the file extension
+        /// </summary>
+        /// <param name="VideoPlayer"></param>
+        /// <param name="MainString"></param>
+        private void InputScreenExtension(Videoplayer VideoPlayer, string MainString)
         {
             bool breakout = false;
             string fileExtension = Program.FrameFileExtension;
             InputScreenInitialLayout(MainString, fileExtension, 20, 22);
+
             while (!breakout)
             {
                 InputScreenEditablePart(fileExtension, 20, 22);
@@ -227,14 +233,20 @@ namespace BadAppleCMD.Screens
                         break;
                 }
             }
-            SettingsPage(videoplayer);
+            SettingsPage(VideoPlayer);
         }
 
-        public void InputScreenFactor(Videoplayer videoplayer, string MainString)
+        /// <summary>
+        /// Inputscreen for the sizedown factor
+        /// </summary>
+        /// <param name="VideoPlayer"></param>
+        /// <param name="MainString"></param>
+        public void InputScreenFactor(Videoplayer VideoPlayer, string MainString)
         {
             bool breakout = false;
-            string factor = videoplayer.ResizeFactor.ToString();
+            string factor = VideoPlayer.ResizeFactor.ToString();
             InputScreenInitialLayout(MainString, factor, 2, 4);
+
             while (!breakout)
             {
                 InputScreenEditablePart(factor, 2, 4);
@@ -244,7 +256,7 @@ namespace BadAppleCMD.Screens
                 {
                     case ConsoleKey.Enter:
                         breakout = true;
-                        videoplayer.ResizeFactor = int.Parse(factor);
+                        VideoPlayer.ResizeFactor = int.Parse(factor);
                         break;
                     case ConsoleKey.Escape:
                         breakout = true;
@@ -263,29 +275,40 @@ namespace BadAppleCMD.Screens
                         break;
                 }
             }
-            SettingsPage(videoplayer);
+            SettingsPage(VideoPlayer);
         }
 
-        private static void InputScreenInitialLayout(string MainString, string option, int Inputsize, int Maxinputsize)
+        /// <summary>
+        /// Initialise the initial layout of the input screen
+        /// </summary>
+        /// <param name="MainString"></param>
+        /// <param name="Value"></param>
+        /// <param name="InputSize"></param>
+        /// <param name="MaxSize"></param>
+        private static void InputScreenInitialLayout(string MainString, string Value, int InputSize, int MaxSize)
         {
             Console.BackgroundColor = ConsoleColor.DarkBlue;
             Console.Clear();
-
             Console.SetCursorPosition((Console.WindowWidth - MainString.Length) / 2, Console.WindowHeight / 2 - 3);
             Console.WriteLine(MainString);
 
-            InputScreenEditablePart(option, Inputsize, Maxinputsize);
-
+            InputScreenEditablePart(Value, InputSize, MaxSize);
             string explanation = "ENTER to save - ESCAPE to quit without saving";
             Console.SetCursorPosition((Console.WindowWidth - explanation.Length) / 2, Console.WindowHeight / 2 + 2);
             Console.WriteLine(explanation);
         }
 
-        private static void InputScreenEditablePart(string option, int Inputsize, int Maxinputsize)
+        /// <summary>
+        /// The editable part of the input screen. Application will only have to rewrite this part
+        /// </summary>
+        /// <param name="Value"></param>
+        /// <param name="InputSize"></param>
+        /// <param name="MaxSize"></param>
+        private static void InputScreenEditablePart(string Value, int InputSize, int MaxSize)
         {
-            Console.SetCursorPosition((Console.WindowWidth - Maxinputsize) / 2, Console.WindowHeight / 2);
-            int split = (Inputsize - option.Length) / 2;
-            string SecondString = "[" + option.PadLeft(split + option.Length).PadRight(Inputsize) + "]";
+            Console.SetCursorPosition((Console.WindowWidth - MaxSize) / 2, Console.WindowHeight / 2);
+            int split = (InputSize - Value.Length) / 2;
+            string SecondString = "[" + Value.PadLeft(split + Value.Length).PadRight(InputSize) + "]";
             Console.WriteLine(SecondString);
         }
     }

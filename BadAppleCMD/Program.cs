@@ -6,16 +6,17 @@ namespace BadAppleCMD
 {
     public class Program
     {
-        private static PlatformInvoke PInvoke = new();
-        private static FFmpeg FFmpegExecution = new();
-        private static Videoplayer VideoPlayer = new();
+        private static readonly PlatformInvoke PInvoke = new();
+        private static readonly Videoplayer VideoPlayer = new();
 
-        private static Menu MainMenu = new();
-        private static Settings SettingsMenu = new();
+        private static readonly Menu MainMenu = new();
+        private static readonly Settings SettingsMenu = new();
 
-        private static string FilePath = "";
-        private static string WorkPath = "";
-        public static string FrameFileExtension = "PNG";
+        private static string? FilePath = "";
+        private static string? WorkPath = "";
+
+        //Options that can be set with settings or arguments
+        public static string FrameFileExtension = "JPEG";
         public static bool Verbose = false;
         public static bool Resize = true;
         public static bool BlackWhite = false;
@@ -26,23 +27,23 @@ namespace BadAppleCMD
         public static int VideoFrameRate { get; set; }
         public static int TotalVideoFrames { get; set; }
 
-        [STAThread]
-        static void Main(string[] args)
+        [STAThread] //Required for filedialog
+        private static void Main(string[] args)
         {
             Initialise(args);
             PInvoke.PrepareConsole();
 
-            if (AutoStart) MakeAndPlayVideo();
+            if (AutoStart) PrepareAndPlayVideo();
             else StartMenu();
         }
 
+        /// <summary>
+        /// Main menu
+        /// </summary>
         private static void StartMenu()
         {
-            int SelectedOption = MainMenu.MainMenu();
-            if (SelectedOption == 0)
-            {
-                MakeAndPlayVideo();
-            }
+            int selectedOption = MainMenu.MainMenu();
+            if (selectedOption == 0) PrepareAndPlayVideo();
             else
             {
                 SettingsMenu.SettingsPage(VideoPlayer);
@@ -50,30 +51,40 @@ namespace BadAppleCMD
             }
         }
 
-        private async static void MakeAndPlayVideo()
+        /// <summary>
+        /// Prepare the video then finish with playing it
+        /// </summary>
+        private static void PrepareAndPlayVideo()
         {
-            LoadingScreens.WriteScreen(ConsoleColor.DarkBlue, "Now Playing", FilePath);
-            Thread.Sleep(2000);
-            Console.Clear();
-
-            FFmpegExecution.GetVideoInformation(FilePath);
-            FFmpegExecution.GetVideoFrames(FilePath, WorkPath, FrameFileExtension);
-            FFmpegExecution.GetAudio(FilePath, WorkPath);
-
-            if (Resize)
+            if (FilePath is not null && WorkPath is not null)
             {
-                Task task = Task.Run(() => { VideoPlayer.ConvertFrames(WorkPath); });
-                LoadingScreens.LoadingFinished = false;
-                LoadingScreens.InformationOrLoadingBar(ConsoleColor.DarkBlue, "Converting frames...", false);
-                task.Wait();
-            }
+                LoadingScreens.LoadingWriteScreen(ConsoleColor.DarkBlue, "Now Playing", FilePath);
+                Thread.Sleep(2000);
+                Console.Clear();
 
-            VideoPlayer.PrepareConsole(WorkPath);
-            Console.Title = "Now Playing: " + Path.GetFileName(FilePath);
-            VideoPlayer.PlayVideo(WorkPath);
+                FFmpeg.GetVideoInformation(FilePath);
+                FFmpeg.GetVideoFrames(FilePath, WorkPath, FrameFileExtension);
+                FFmpeg.GetAudio(FilePath, WorkPath);
+
+                if (Resize)
+                {
+                    Task task = Task.Run(() => { VideoPlayer.ConvertFrames(WorkPath); });
+                    LoadingScreens.LoadingFinished = false;
+                    LoadingScreens.InformationOrLoadingBar(ConsoleColor.DarkBlue, "Converting frames...", false);
+                    task.Wait();
+                }
+
+                VideoPlayer.PrepareConsole(WorkPath);
+                Console.Title = "Now Playing: " + Path.GetFileName(FilePath);
+                VideoPlayer.PlayVideo(WorkPath);
+            }
             Environment.Exit(0);
         }
 
+        /// <summary>
+        /// Initialise application and check for arguments in <paramref name="args"/>
+        /// </summary>
+        /// <param name="args"></param>
         private static void Initialise(string[] args)
         {
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(ExitApplication);
@@ -84,17 +95,18 @@ namespace BadAppleCMD
 
             if (!File.Exists(".\\ffmpeg.exe") && !File.Exists(".\\ffprobe.exe"))
             {
-                LoadingScreens.WriteScreen(ConsoleColor.DarkRed, "Missing requisites", "FFmpeg and FFprobe are required to run BadApplePrompt");
+                LoadingScreens.LoadingWriteScreen(ConsoleColor.DarkRed, "Missing requisites", "FFmpeg and FFprobe are required to run BadApplePrompt");
                 Thread.Sleep(5000);
                 Environment.Exit(0);
             }
 
+            //The first one will always be the file
             if (args.Length != 0)
             {
                 for (int i = 0; i < args.Length; i++)
                 {
                     string argument = args[i];
-                    argument.TrimStart('-');
+                    _ = argument.TrimStart('-');
 
                     switch (argument)
                     {
@@ -122,14 +134,14 @@ namespace BadAppleCMD
                     }
                 }
 
-                FilePath = Path.GetDirectoryName(args[args.Length - 1])
+                FilePath = Path.GetDirectoryName(args[^1])
                     + Path.DirectorySeparatorChar
-                    + Path.GetFileNameWithoutExtension(args[args.Length - 1])
-                    + Path.GetExtension(args[args.Length - 1]);
+                    + Path.GetFileNameWithoutExtension(args[^1])
+                    + Path.GetExtension(args[^1]);
             }
             else
             {
-                LoadingScreens.WriteScreen(ConsoleColor.DarkRed, "No file has been provided", "Select a videofile or quit");
+                LoadingScreens.LoadingWriteScreen(ConsoleColor.DarkRed, "No file has been provided", "Select a videofile or quit");
                 FilePath = SelectFileDialog();
                 if (FilePath is null) Environment.Exit(0);
             }
@@ -140,41 +152,51 @@ namespace BadAppleCMD
             di.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
         }
 
-        private static string SelectFileDialog()
+        /// <summary>
+        /// Windows file selector dialog with only video files filtered
+        /// </summary>
+        /// <returns>Path to selected file</returns>
+        private static string? SelectFileDialog()
         {
-            using (OpenFileDialog openFileDialog = new OpenFileDialog())
-            {
-                openFileDialog.InitialDirectory = WorkPath;
-                openFileDialog.Filter = "All Video Media Files|*.wmv;*.avi;*.mpg;*.mpeg;*.m1v;*.mpe;*.mp4;*.mov;*.3g2;*.3gp2;*.3gp;*.3gpp;*.m4a;*.mkv;*.WMV;*.AVI;*.MPG;*.MPEG;*.M1V;*.MPE;*.MP4;*.MOV;*.3G2;*.3GP2;*.3GP;*.3GPP;*.M4A;*.MKV;";
-                openFileDialog.FilterIndex = 2;
-                openFileDialog.RestoreDirectory = true;
+            using OpenFileDialog openFileDialog = new();
+            openFileDialog.InitialDirectory = WorkPath;
+            openFileDialog.Filter = "All Video Media Files|*.wmv;*.avi;*.mpg;*.mpeg;*.m1v;*.mpe;*.mp4;*.mov;*.3g2;*.3gp2;*.3gp;*.3gpp;*.m4a;*.mkv;*.WMV;*.AVI;*.MPG;*.MPEG;*.M1V;*.MPE;*.MP4;*.MOV;*.3G2;*.3GP2;*.3GP;*.3GPP;*.M4A;*.MKV;";
+            openFileDialog.FilterIndex = 2;
+            openFileDialog.RestoreDirectory = true;
 
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    //Get the path of specified file
-                    return openFileDialog.FileName;
-                }
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                //Get the path of specified file
+                return openFileDialog.FileName;
             }
             return null;
         }
 
-        static void ExitApplication(object sender, EventArgs e)
+        /// <summary>
+        /// Cleanup tempfolder and close
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private static void ExitApplication(object sender, EventArgs e)
         {
             VideoPlayer.Audio?.Stop();
-            VideoPlayer.TotalFrameCounter = 2147483646;
+            VideoPlayer.TotalFrameCounter = 2147483646; //Max int value
             VideoPlayer.RunVideo = false;
             GC.Collect();
 
             Thread.Sleep(500);
             Console.Title = "Exiting BadApplePrompt...";
             Console.ForegroundColor = ConsoleColor.White;
-            LoadingScreens.WriteScreen(ConsoleColor.DarkBlue, "Thank you!", "Cleaning up and exiting...");
+            LoadingScreens.LoadingWriteScreen(ConsoleColor.DarkBlue, "Thank you!", "Cleaning up and exiting...");
             Thread.Sleep(500);
 
             GC.WaitForPendingFinalizers();
             DeleteTemp();
         }
 
+        /// <summary>
+        /// Delete the /temp folder if possible
+        /// </summary>
         private static void DeleteTemp()
         {
             if (Directory.Exists(WorkPath + "/temp"))

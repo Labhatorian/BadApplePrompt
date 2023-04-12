@@ -10,28 +10,32 @@ namespace BadAppleCMD.Logic
     {
         private int VideoWidthColumns = 0;
         private int VideoHeightColumns = 0;
+
         private int FPScounter = 0;
         public bool ShowFPSCounter = true;
-        public int TotalFrameCounter = 1;
         private string FPSstring = "FPS: 0";
         private bool VideoAudioDesync = false;
+
+        public int TotalFrameCounter = 1;
         public SoundPlayer? Audio;
-        private string Buffer;
-        //360p -> 4x - 1080p -> 16x
-        public int ResizeFactor = 4;
+        private string? Buffer;
+        public int ResizeFactor = 4; //360p -> 4x - 1080p -> 16x
         public bool RunVideo = false;
 
-        public void PlayVideo(string WorkingPath)
+        /// <summary>
+        /// Main function that plays the video in the console.
+        /// </summary>
+        /// <param name="WorkPath"></param>
+        public void PlayVideo(string WorkPath)
         {
-            int SleepFor = (int)(Program.VideoFrameRate / (Math.Pow(Program.VideoFrameRate / 30, 2) * 2));
-
-            //FPS counter timer and event
+            //FPS
+            int sleepFor = (int)(Program.VideoFrameRate / (Math.Pow(Program.VideoFrameRate / 30, 2) * 2));
             Timer timer = new(1000);
             timer.Elapsed += OnTimedEvent;
 
-            Audio = new SoundPlayer(WorkingPath + "/temp/Audio.wav");
+            Audio = new SoundPlayer(WorkPath + "/temp/Audio.wav");
             timer.Start();
-            if (File.Exists(WorkingPath + "/temp/Audio.wav")) Audio?.Play();
+            if (File.Exists(WorkPath + "/temp/Audio.wav")) Audio?.Play();
 
             RunVideo = true;
             while (TotalFrameCounter <= Program.TotalVideoFrames && RunVideo)
@@ -41,11 +45,12 @@ namespace BadAppleCMD.Logic
                     Console.Write(Buffer);
                     try
                     {
-                        using (Bitmap image = new(WorkingPath + $"\\temp\\{TotalFrameCounter + 1:00000000}." + Program.FrameFileExtension)) Buffer = ConvertToAscii(image);
-                        File.Delete(WorkingPath + $"\\temp\\{TotalFrameCounter:00000000}." + Program.FrameFileExtension);
+                        using (Bitmap image = new(WorkPath + $"\\temp\\{TotalFrameCounter + 1:00000000}." + Program.FrameFileExtension)) Buffer = ConvertToAscii(image);
+                        File.Delete(WorkPath + $"\\temp\\{TotalFrameCounter:00000000}." + Program.FrameFileExtension);
                     }
                     catch (Exception) { }
-                    Thread.Sleep(SleepFor);
+
+                    Thread.Sleep(sleepFor);
                     Console.SetCursorPosition(0, 0);
                     TotalFrameCounter++;
                     FPScounter++;
@@ -53,13 +58,17 @@ namespace BadAppleCMD.Logic
             }
         }
 
-        public void PrepareConsole(string WorkingPath)
+        /// <summary>
+        /// Prepare the console for playing the video. Sets the console- and buffer size
+        /// </summary>
+        /// <param name="WorkPath"></param>
+        public void PrepareConsole(string WorkPath)
         {
             //Display first frame to size window correctly and save in buffer for later
-            using (Bitmap image = new(WorkingPath + $"\\temp\\{1:00000000}." + Program.FrameFileExtension)) Buffer = ConvertToAscii(image);
+            using (Bitmap image = new(WorkPath + $"\\temp\\{1:00000000}." + Program.FrameFileExtension)) Buffer = ConvertToAscii(image);
             Console.Write(Buffer);
 
-            File.Delete(WorkingPath + $"\\temp\\{1:00000000}." + Program.FrameFileExtension);
+            File.Delete(WorkPath + $"\\temp\\{1:00000000}." + Program.FrameFileExtension);
             TotalFrameCounter++;
 
             //Prevents crashing of too big of a window
@@ -73,7 +82,11 @@ namespace BadAppleCMD.Logic
             Console.Clear();
         }
 
-        public void ConvertFrames(string WorkingPath)
+        /// <summary>
+        /// Converts the frames depending on the sizedown factor
+        /// </summary>
+        /// <param name="WorkPath"></param>
+        public void ConvertFrames(string WorkPath)
         {
             LoadingScreens.Total = Program.TotalVideoFrames.ToString();
             TotalFrameCounter = 1;
@@ -81,29 +94,34 @@ namespace BadAppleCMD.Logic
             {
                 LoadingScreens.Current = TotalFrameCounter.ToString();
                 Bitmap resizedImage;
-                using (Bitmap image = new(WorkingPath + $"\\temp\\{TotalFrameCounter:00000000}." + Program.FrameFileExtension)) resizedImage = new(image, new Size(image.Width / ResizeFactor, image.Height / ResizeFactor));
-                resizedImage.Save(WorkingPath + $"\\temp\\{TotalFrameCounter:00000000}." + Program.FrameFileExtension);
+                using (Bitmap image = new(WorkPath + $"\\temp\\{TotalFrameCounter:00000000}." + Program.FrameFileExtension)) resizedImage = new(image, new Size(image.Width / ResizeFactor, image.Height / ResizeFactor));
+                resizedImage.Save(WorkPath + $"\\temp\\{TotalFrameCounter:00000000}." + Program.FrameFileExtension);
                 TotalFrameCounter++;
             }
             LoadingScreens.LoadingFinished = true;
             TotalFrameCounter = 1;
         }
 
-        private string ConvertToAscii(Bitmap image)
+        /// <summary>
+        /// Converts a <paramref name="Frame"/> from the temp folder to Ascii.
+        /// </summary>
+        /// <param name="Frame"></param>
+        /// <returns></returns>
+        private string ConvertToAscii(Bitmap Frame)
         {
             StringBuilder sb = new();
             int height = 0;
-            using (image = new Bitmap(image))
+            using (Frame = new Bitmap(Frame))
             {
-                for (int h = 0; h < image.Height; h++)
+                for (int h = 0; h < Frame.Height; h++)
                 {
                     int w;
-                    for (w = 0; w < image.Width; w++)
+                    for (w = 0; w < Frame.Width; w++)
                     {
-                        Color pixelColor = image.GetPixel(w, h);
-                        int average = (pixelColor.R + pixelColor.G + pixelColor.B) / 3; //Average out the RGB components to find the Gray Color
+                        Color pixelColor = Frame.GetPixel(w, h);
+                        int average = (pixelColor.R + pixelColor.G + pixelColor.B) / 3;
 
-                        //Testing has resulted in 15 being the best value for BW videos
+                        //Testing has resulted in 15 being the best value for Bad Apple
                         if (average > 15) sb.Append('█');
                         else sb.Append(' ');
                     }
@@ -117,17 +135,20 @@ namespace BadAppleCMD.Logic
             VideoHeightColumns = height;
 
             //This might seem weird, but it prevents a yellow line bleeding through for whatever reason
-            //We also can't just not do this because it needs one extra heightcolumn to prevent video jumping around
+            //We also can not just not do this because it needs one extra heightcolumn to prevent the video jumping around
             if (!ShowFPSCounter) FPSstring = new string(' ', FPSstring.Length);
             sb.Append(FPSstring);
 
-            for (int i = VideoWidthColumns - FPSstring.Length; i > 0; i--)
-            {
-                sb.Append(' ');
-            }
+            for (int i = VideoWidthColumns - FPSstring.Length; i > 0; i--) sb.Append(' ');
             return sb.ToString();
         }
 
+        /// <summary>
+        /// FPS Counter that also checks that the video has not been desynced.<br></br>
+        /// Note that it will most likely still desync due to rounding in FPS when we got <see cref="Program.VideoFrameRate"/>
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="e"></param>
         private void OnTimedEvent(object source, ElapsedEventArgs e)
         {
             FPSstring = $"FPS: {FPScounter}";

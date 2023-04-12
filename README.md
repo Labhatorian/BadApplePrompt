@@ -9,4 +9,4 @@ There is an option to convert to grayscale as this *might* improve viewing.
 ## Afterword
 This was a fun little side project that I decided to do when I first started learning C#. However, I admit that C# is not the language for this and that C++
 might have been better due. As Console.Write() is the fastest way to write to console without dealing with buffers from StreamWriter or 
-corrupted and garbage data from WriteConsoleW. This means 60FPS and colour support is not possible.
+corrupted and garbage data from WriteConsoleW. This means colour support is not possible as it is too slow.
