@@ -6,6 +6,9 @@
 
 Inspired by countless videos of [Bad Apple](https://www.youtube.com/watch?v=FtutLA63Cp8) being played on any device imaginable. Play black and white videos right into your command prompt/terminal with audio support.<br>
 
+Check BadApplePrompt out in action over at YouTube by clicking the image below!<br>
+[![BadApplePrompt Youtube video link](https://img.youtube.com/vi/tJqY5yGH68Q/default.jpg)](https://youtu.be/tJqY5yGH68Q)
+
 ## Setup
 Setup for BadApplePrompt is easy:
 1. Create a folder anywhere

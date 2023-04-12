@@ -1,7 +1,4 @@
-﻿using BadAppleCMD.Logic;
-using System.Text.RegularExpressions;
-
-namespace BadAppleCMD.Screens
+﻿namespace BadAppleCMD.Screens
 {
     public class Settings
     {
