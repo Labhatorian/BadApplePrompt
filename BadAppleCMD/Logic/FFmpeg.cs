@@ -17,7 +17,6 @@ namespace BadAppleCMD.Logic
         {
             string parameter = "-i " + FilePath + (Program.BlackWhite ? " -vf colorchannelmixer=.3:.4:.3:0:.3:.4:.3:0:.3" : "") + " -f image2 " + WorkingPath + "\\temp\\%08d." + FileExtension;
             Console.CursorVisible = false;
-            //TODO This does not work correctly on videos that are not bad apple
             ExecuteFFmpeg(parameter, "Getting every frame from the video...");
         }
 
@@ -25,19 +24,19 @@ namespace BadAppleCMD.Logic
         {
             string parameter = "-i " + FilePath + " " + WorkingPath + "\\temp\\Audio.wav";
             if (File.Exists(WorkingPath + "/temp/Audio.wav")) File.Delete(WorkingPath + "/temp/Audio.wav"); //Prevents crash
-            ExecuteFFmpeg(parameter, "Getting Audio from the video...");
+            ExecuteFFmpeg(parameter, "Getting Audio from the video...", false, true);
         }
 
         private void ExecuteFFprobe(string parameter, string screenText, bool screenLoadingBar = false)
         {
-            Task task = Task.Run(() => { Execute(".\\ffprobe.exe", parameter, true); });
+            Task task = Task.Run(() => { Execute(".\\ffprobe.exe", parameter, true, false); });
             if (!Program.Verbose) LoadingScreens.InformationOrLoadingBar(ConsoleColor.DarkBlue, screenText, screenLoadingBar);
             task.Wait();
         }
 
-        private void ExecuteFFmpeg(string parameter, string screenText, bool screenLoadingBar = false)
+        private void ExecuteFFmpeg(string parameter, string screenText, bool screenLoadingBar = false, bool IsAudio = false)
         {
-            Task task = Task.Run(() => { Execute(".\\ffmpeg.exe", parameter, true); });
+            Task task = Task.Run(() => { Execute(".\\ffmpeg.exe", parameter, true, IsAudio); });
             if (!Program.Verbose) LoadingScreens.InformationOrLoadingBar(ConsoleColor.DarkBlue, screenText, screenLoadingBar);
             task.Wait();
         }
@@ -48,7 +47,7 @@ namespace BadAppleCMD.Logic
         /// <param name="exePath"></param>
         /// <param name="parameters"></param>
         /// <param name="getinformation"></param>
-        private void Execute(string exePath, string parameters, bool getinformation)
+        private void Execute(string exePath, string parameters, bool getinformation, bool IsAudio)
         {
             string result = string.Empty;
             LoadingScreens.LoadingFinished = false;
@@ -60,7 +59,6 @@ namespace BadAppleCMD.Logic
             p.StartInfo.RedirectStandardError = true;
             p.StartInfo.FileName = exePath;
             p.StartInfo.Arguments = parameters;
-            //TODO Test different videos with different codes, resolutions, framerate, as testing resulted in a different video not getting right values for Time= and Duration=
             //For ffprobe
             p.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
             {
@@ -112,7 +110,7 @@ namespace BadAppleCMD.Logic
                     {
                         try
                         {
-                            if (e.Data.Contains("Duration:") && getinformation)
+                            if (e.Data.Contains("Duration:") && getinformation && IsAudio)
                             {
                                 string totaltime = e.Data.Substring(e.Data.LastIndexOf("Duration:") + 10, e.Data.LastIndexOf("Duration:") + 9);
 
@@ -120,12 +118,18 @@ namespace BadAppleCMD.Logic
                                         CultureInfo.InvariantCulture);
                                 LoadingScreens.Total = (totaldurationTime.Hour * 60 * 60 + totaldurationTime.Minute * 60 + totaldurationTime.Second + totaldurationTime.Millisecond / 100).ToString();
                             }
-                            if (e.Data.Contains("time="))
+                            if (e.Data.Contains("time=") && IsAudio)
                             {
                                 string current = e.Data.Substring(e.Data.LastIndexOf("time=") + 5, e.Data.LastIndexOf("time=:") + 12);
                                 DateTime currentTime = DateTime.ParseExact(current, "HH:mm:ss.ff",
                                        CultureInfo.InvariantCulture);
                                 LoadingScreens.Current = (currentTime.Hour * 60 * 60 + currentTime.Minute * 60 + currentTime.Second + currentTime.Millisecond / 100).ToString();
+                            }
+                            if (e.Data.Contains("frame=") && !IsAudio)
+                            {
+                                string current = e.Data.Substring(e.Data.LastIndexOf("frame=") + 6, e.Data.LastIndexOf("frame=") + 5);
+                                LoadingScreens.Total = Program.TotalVideoFrames.ToString();
+                                LoadingScreens.Current = int.Parse(current).ToString();
                             }
                         }
                         catch (FormatException)

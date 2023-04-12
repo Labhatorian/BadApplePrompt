@@ -44,7 +44,7 @@ namespace BadAppleCMD.Logic
                         using (Bitmap image = new(WorkingPath + $"\\temp\\{TotalFrameCounter + 1:00000000}." + Program.FrameFileExtension)) Buffer = ConvertToAscii(image);
                         File.Delete(WorkingPath + $"\\temp\\{TotalFrameCounter:00000000}." + Program.FrameFileExtension);
                     }
-                    catch (Exception) { } //ignore
+                    catch (Exception) { }
                     Thread.Sleep(SleepFor);
                     Console.SetCursorPosition(0, 0);
                     TotalFrameCounter++;
@@ -58,6 +58,7 @@ namespace BadAppleCMD.Logic
             //Display first frame to size window correctly and save in buffer for later
             using (Bitmap image = new(WorkingPath + $"\\temp\\{1:00000000}." + Program.FrameFileExtension)) Buffer = ConvertToAscii(image);
             Console.Write(Buffer);
+
             File.Delete(WorkingPath + $"\\temp\\{1:00000000}." + Program.FrameFileExtension);
             TotalFrameCounter++;
 

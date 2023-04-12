@@ -67,7 +67,7 @@ namespace BadAppleCMD.Screens
                 Menu.NotSelected();
 
                 Console.SetCursorPosition(2, 3);
-                Console.Write("[Video sizedown factor]");
+                Console.Write("[Video sizedown option]");
 
                 Console.SetCursorPosition(2, 4);
                 if (SelectedItem == 1) Menu.Selected();
@@ -190,7 +190,7 @@ namespace BadAppleCMD.Screens
             }
 
             if (SelectedItem == 0) return;
-            else if (SelectedItem == 5) InputScreenFactor(videoplayer, "Custom resize factor");
+            else if (SelectedItem == 5) InputScreenFactor(videoplayer, "Custom resize option");
             else if (SelectedItem == 6) InputScreenExtension(videoplayer, "Edit file extension");
             else SettingsPage(videoplayer);
         }
@@ -198,23 +198,11 @@ namespace BadAppleCMD.Screens
         public void InputScreenExtension(Videoplayer videoplayer, string MainString)
         {
             bool breakout = false;
-
-            Console.BackgroundColor = ConsoleColor.DarkBlue;
-            Console.Clear();
-            string explanation = "ENTER to save - ESCAPE to quit without saving";
             string fileExtension = Program.FrameFileExtension;
+            InputScreenInitialLayout(MainString, fileExtension, 20, 22);
             while (!breakout)
             {
-                Console.SetCursorPosition((Console.WindowWidth - MainString.Length) / 2, Console.WindowHeight / 2 - 3);
-                Console.WriteLine(MainString);
-
-                Console.SetCursorPosition((Console.WindowWidth - 22) / 2, Console.WindowHeight / 2);
-                int split = (20 - fileExtension.Length) / 2;
-                string SecondString = "[" + fileExtension.PadLeft(split + fileExtension.Length).PadRight(20) + "]";
-                Console.WriteLine(SecondString);
-
-                Console.SetCursorPosition((Console.WindowWidth - explanation.Length) / 2, Console.WindowHeight / 2 + 2);
-                Console.WriteLine(explanation);
+                InputScreenEditablePart(fileExtension, 20, 22);
 
                 var key = Console.ReadKey(true).Key;
                 switch (key)
@@ -242,27 +230,14 @@ namespace BadAppleCMD.Screens
             SettingsPage(videoplayer);
         }
 
-        //todo merge some code that are the same
         public void InputScreenFactor(Videoplayer videoplayer, string MainString)
         {
             bool breakout = false;
-
-            Console.BackgroundColor = ConsoleColor.DarkBlue;
-            Console.Clear();
-            string explanation = "ENTER to save - ESCAPE to quit without saving";
             string factor = videoplayer.ResizeFactor.ToString();
+            InputScreenInitialLayout(MainString, factor, 2, 4);
             while (!breakout)
             {
-                Console.SetCursorPosition((Console.WindowWidth - MainString.Length) / 2, Console.WindowHeight / 2 - 3);
-                Console.WriteLine(MainString);
-
-                Console.SetCursorPosition((Console.WindowWidth - 4) / 2, Console.WindowHeight / 2);
-                int split = (2 - factor.Length) / 2;
-                string SecondString = "[" + factor.PadLeft(split + factor.Length).PadRight(2) + "]";
-                Console.WriteLine(SecondString);
-
-                Console.SetCursorPosition((Console.WindowWidth - explanation.Length) / 2, Console.WindowHeight / 2 + 2);
-                Console.WriteLine(explanation);
+                InputScreenEditablePart(factor, 2, 4);
 
                 ConsoleKey key = Console.ReadKey(true).Key;
                 switch (key)
@@ -289,6 +264,29 @@ namespace BadAppleCMD.Screens
                 }
             }
             SettingsPage(videoplayer);
+        }
+
+        private static void InputScreenInitialLayout(string MainString, string option, int Inputsize, int Maxinputsize)
+        {
+            Console.BackgroundColor = ConsoleColor.DarkBlue;
+            Console.Clear();
+
+            Console.SetCursorPosition((Console.WindowWidth - MainString.Length) / 2, Console.WindowHeight / 2 - 3);
+            Console.WriteLine(MainString);
+
+            InputScreenEditablePart(option, Inputsize, Maxinputsize);
+
+            string explanation = "ENTER to save - ESCAPE to quit without saving";
+            Console.SetCursorPosition((Console.WindowWidth - explanation.Length) / 2, Console.WindowHeight / 2 + 2);
+            Console.WriteLine(explanation);
+        }
+
+        private static void InputScreenEditablePart(string option, int Inputsize, int Maxinputsize)
+        {
+            Console.SetCursorPosition((Console.WindowWidth - Maxinputsize) / 2, Console.WindowHeight / 2);
+            int split = (Inputsize - option.Length) / 2;
+            string SecondString = "[" + option.PadLeft(split + option.Length).PadRight(Inputsize) + "]";
+            Console.WriteLine(SecondString);
         }
     }
 }

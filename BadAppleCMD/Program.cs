@@ -6,7 +6,6 @@ namespace BadAppleCMD
 {
     public class Program
     {
-        //todo implement fast way to display text
         private static PlatformInvoke PInvoke = new();
         private static FFmpeg FFmpegExecution = new();
         private static Videoplayer VideoPlayer = new();
@@ -51,7 +50,7 @@ namespace BadAppleCMD
             }
         }
 
-        private static void MakeAndPlayVideo()
+        private async static void MakeAndPlayVideo()
         {
             LoadingScreens.WriteScreen(ConsoleColor.DarkBlue, "Now Playing", FilePath);
             Thread.Sleep(2000);
