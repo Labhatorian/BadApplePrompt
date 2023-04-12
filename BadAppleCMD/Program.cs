@@ -6,7 +6,6 @@ namespace BadAppleCMD
 {
     public class Program
     {
-        private static readonly PlatformInvoke PInvoke = new();
         private static readonly Videoplayer VideoPlayer = new();
 
         private static readonly Menu MainMenu = new();
@@ -31,8 +30,6 @@ namespace BadAppleCMD
         private static void Main(string[] args)
         {
             Initialise(args);
-            PInvoke.PrepareConsole();
-
             if (AutoStart) PrepareAndPlayVideo();
             else StartMenu();
         }

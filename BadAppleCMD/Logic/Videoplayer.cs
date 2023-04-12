@@ -40,6 +40,7 @@ namespace BadAppleCMD.Logic
             RunVideo = true;
             while (TotalFrameCounter <= Program.TotalVideoFrames && RunVideo)
             {
+                Console.CursorVisible = false;
                 if (FPScounter != Program.VideoFrameRate)
                 {
                     Console.Write(Buffer);
@@ -72,6 +73,7 @@ namespace BadAppleCMD.Logic
             TotalFrameCounter++;
 
             //Prevents crashing of too big of a window
+            VideoWidthColumns += 1; //Required otherwise the video is cut up in Release
             if (VideoWidthColumns > Console.LargestWindowWidth) VideoWidthColumns = Console.LargestWindowWidth;
             VideoHeightColumns += 1; //Required otherwise the video jumps around
             if (VideoHeightColumns > Console.LargestWindowHeight) VideoHeightColumns = Console.LargestWindowHeight;
@@ -79,6 +81,7 @@ namespace BadAppleCMD.Logic
             Console.SetWindowSize(VideoWidthColumns, VideoHeightColumns);
             Console.SetBufferSize(VideoWidthColumns, VideoHeightColumns);
             Console.BackgroundColor = ConsoleColor.Black;
+            Console.CursorVisible = false;
             Console.Clear();
         }
 
