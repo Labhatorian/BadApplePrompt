@@ -56,11 +56,11 @@ namespace BadAppleCMD.Logic
             DrawMenuBar(handle);
 
             //Disable Quick-Edit mode and selecting
-            IntPtr consoleHandle = GetStdHandle(STD_INPUT_HANDLE);
-            if (consoleHandle == IntPtr.Zero) return;
-            GetConsoleMode(consoleHandle, out int mode);
+            IntPtr windowHandle = GetStdHandle(STD_INPUT_HANDLE);
+            if (windowHandle == IntPtr.Zero) return;
+            GetConsoleMode(windowHandle, out int mode);
             mode &= ~ENABLE_QUICK_EDIT;
-            SetConsoleMode(consoleHandle, mode);
+            SetConsoleMode(windowHandle, mode);
         }
     }
 }

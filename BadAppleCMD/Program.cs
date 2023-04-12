@@ -6,6 +6,7 @@ namespace BadAppleCMD
 {
     public class Program
     {
+        //todo implement fast way to display text
         private static PlatformInvoke PInvoke = new();
         private static FFmpeg FFmpegExecution = new();
         private static Videoplayer VideoPlayer = new();
